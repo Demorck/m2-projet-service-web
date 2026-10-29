@@ -3,6 +3,7 @@ package fr.isaaconnect.sweb.entities;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.validator.constraints.Length;
+import org.hibernate.validator.constraints.Range;
 
 import java.util.UUID;
 
@@ -24,9 +25,9 @@ public class EvaluationEntity
     @Length(max = 255)
     private String text;
 
-    @Length(min = 0, max = 3)
+    @Range(min = 0, max = 3)
     private int note;
 
     @ManyToOne
-    private RestaurantEntity restaurant_id;
+    private RestaurantEntity restaurant;
 }

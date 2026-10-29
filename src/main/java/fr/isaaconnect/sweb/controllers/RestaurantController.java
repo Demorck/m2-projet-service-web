@@ -3,6 +3,7 @@ package fr.isaaconnect.sweb.controllers;
 import fr.isaaconnect.sweb.dto.evaluations.EvaluationDTO;
 import fr.isaaconnect.sweb.dto.restaurants.ModifyRestaurantDTO;
 import fr.isaaconnect.sweb.dto.restaurants.RestaurantDTO;
+import fr.isaaconnect.sweb.services.EvaluationService;
 import fr.isaaconnect.sweb.services.RestaurantService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,17 +21,18 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class RestaurantController
 {
-    private final RestaurantService service;
+    private final RestaurantService restaurantService;
+    private final EvaluationService evaluationService;
 
     // RESTAURANTS
     @GetMapping
     public List<RestaurantDTO> getRestaurants() {
-        return this.service.getRestaurants().stream().map(RestaurantDTO::fromEntity).toList();
+        return this.restaurantService.getRestaurants().stream().map(RestaurantDTO::fromEntity).toList();
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<RestaurantDTO> getRestaurantById(@PathVariable UUID id) {
-        RestaurantDTO dto = RestaurantDTO.fromEntity(this.service.getRestaurantById(id));
+        RestaurantDTO dto = RestaurantDTO.fromEntity(this.restaurantService.getRestaurantById(id));
         return ResponseEntity.ok(dto);
     }
 
@@ -38,7 +40,7 @@ public class RestaurantController
     public ResponseEntity<?> addRestaurant(@Valid @RequestBody RestaurantDTO restaurant, BindingResult result) {
         if (result.hasErrors()) return buildResponseErrorEntityFromBindingResult(result);
 
-        this.service.addRestaurant(restaurant.getName(), restaurant.getAddress());
+        this.restaurantService.addRestaurant(restaurant.getName(), restaurant.getAddress());
         return ResponseEntity.ok().build();
     }
 
@@ -50,7 +52,7 @@ public class RestaurantController
     ) {
         if (result.hasErrors()) return buildResponseErrorEntityFromBindingResult(result);
 
-        this.service.modifyRestaurant(id, restaurant.getName(), restaurant.getAddress());
+        this.restaurantService.modifyRestaurant(id, restaurant.getName(), restaurant.getAddress());
         return ResponseEntity.ok().build();
     }
 
@@ -58,9 +60,26 @@ public class RestaurantController
     // EVALUATIONS
     @GetMapping("/{id}/evaluations")
     public ResponseEntity<List<EvaluationDTO>> getEvaluationsByRestaurantId(@PathVariable UUID id) {
-        RestaurantDTO dto = RestaurantDTO.fromEntity(this.service.getRestaurantById(id));
+        RestaurantDTO dto = RestaurantDTO.fromEntity(this.restaurantService.getRestaurantById(id));
 
         return ResponseEntity.ok(dto.getEvaluations());
+    }
+
+    @PostMapping("/{id}/evaluations")
+    public ResponseEntity<?> addEvaluationByRestaurantId(
+            @PathVariable UUID id,
+            @Valid @RequestBody EvaluationDTO evaluation,
+            BindingResult result
+    ) {
+        if (result.hasErrors()) return this.buildResponseErrorEntityFromBindingResult(result);
+
+        this.evaluationService.addEvaluation(
+                id,
+                evaluation.getAuthor(),
+                evaluation.getText(),
+                evaluation.getNote()
+        );
+        return ResponseEntity.ok().build();
     }
 
     private ResponseEntity<?> buildResponseErrorEntityFromBindingResult(BindingResult result) {
