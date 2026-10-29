@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.validator.constraints.Length;
 
+import java.util.Collection;
 import java.util.UUID;
 
 @Entity @Builder
@@ -22,4 +23,7 @@ public class RestaurantEntity {
 
     @Length(max = 255)
     private String address;
+
+    @OneToMany
+    private Collection<EvaluationEntity> evaluations;
 }

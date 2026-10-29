@@ -1,5 +1,6 @@
 package fr.isaaconnect.sweb.controllers;
 
+import fr.isaaconnect.sweb.dto.evaluations.EvaluationDTO;
 import fr.isaaconnect.sweb.dto.restaurants.ModifyRestaurantDTO;
 import fr.isaaconnect.sweb.dto.restaurants.RestaurantDTO;
 import fr.isaaconnect.sweb.services.RestaurantService;
@@ -21,6 +22,7 @@ public class RestaurantController
 {
     private final RestaurantService service;
 
+    // RESTAURANTS
     @GetMapping
     public List<RestaurantDTO> getRestaurants() {
         return this.service.getRestaurants().stream().map(RestaurantDTO::fromEntity).toList();
@@ -50,6 +52,15 @@ public class RestaurantController
 
         this.service.modifyRestaurant(id, restaurant.getName(), restaurant.getAddress());
         return ResponseEntity.ok().build();
+    }
+
+
+    // EVALUATIONS
+    @GetMapping("/{id}/evaluations")
+    public ResponseEntity<List<EvaluationDTO>> getEvaluationsByRestaurantId(@PathVariable UUID id) {
+        RestaurantDTO dto = RestaurantDTO.fromEntity(this.service.getRestaurantById(id));
+
+        return ResponseEntity.ok(dto.getEvaluations());
     }
 
     private ResponseEntity<?> buildResponseErrorEntityFromBindingResult(BindingResult result) {
