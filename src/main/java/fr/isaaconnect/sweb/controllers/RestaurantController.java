@@ -1,5 +1,7 @@
 package fr.isaaconnect.sweb.controllers;
 
+import fr.isaaconnect.sweb.dto.errors.FieldValidationErrorDTO;
+import fr.isaaconnect.sweb.dto.errors.FieldErrorDTO;
 import fr.isaaconnect.sweb.dto.evaluations.EvaluationDTO;
 import fr.isaaconnect.sweb.dto.restaurants.AddRequestRestaurantDTO;
 import fr.isaaconnect.sweb.dto.restaurants.AddResponseRestaurantDTO;
@@ -9,9 +11,9 @@ import fr.isaaconnect.sweb.services.EvaluationService;
 import fr.isaaconnect.sweb.services.RestaurantService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -98,11 +100,17 @@ public class RestaurantController {
         return ResponseEntity.ok().build();
     }
 
-    private ResponseEntity<?> buildResponseErrorEntityFromBindingResult(BindingResult result) {
-        List<String> errors = result.getFieldErrors()
+    private ResponseEntity<FieldValidationErrorDTO> buildResponseErrorEntityFromBindingResult(BindingResult result) {
+        List<FieldErrorDTO> errors = result.getFieldErrors()
                 .stream()
-                .map(FieldError::getDefaultMessage)
-                .collect(Collectors.toList());
-        return ResponseEntity.badRequest().body(errors);
+                .map(FieldErrorDTO::fromFieldError)
+                .toList();
+
+        return ResponseEntity.badRequest().body(FieldValidationErrorDTO.builder()
+                .code(HttpStatus.BAD_REQUEST.value())
+                .message("Fields provide are wrong")
+                .fieldErrors(errors.stream().toList())
+                .build()
+        );
     }
 }

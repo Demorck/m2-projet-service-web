@@ -1,5 +1,6 @@
 package fr.isaaconnect.sweb.controllers;
 
+import fr.isaaconnect.sweb.dto.errors.ErrorResponseDTO;
 import fr.isaaconnect.sweb.exceptions.ConflictException;
 import fr.isaaconnect.sweb.exceptions.NotFoundException;
 import org.springframework.http.HttpStatus;
@@ -12,14 +13,22 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler
-    public ResponseEntity<String> handle(NotFoundException exception) {
+    public ResponseEntity<ErrorResponseDTO> handle(NotFoundException exception) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body("Not found: " + exception.getMessage());
+                .body(ErrorResponseDTO.builder()
+                        .code(HttpStatus.NOT_FOUND.value())
+                        .message(exception.getMessage())
+                        .build()
+                );
     }
 
     @ExceptionHandler
-    public ResponseEntity<String> handle(ConflictException exception) {
+    public ResponseEntity<ErrorResponseDTO> handle(ConflictException exception) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body("Conflict: " + exception.getMessage());
+                .body(ErrorResponseDTO.builder()
+                        .code(HttpStatus.CONFLICT.value())
+                        .message(exception.getMessage())
+                        .build()
+                );
     }
 }
