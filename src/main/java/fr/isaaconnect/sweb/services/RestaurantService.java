@@ -31,13 +31,13 @@ public class RestaurantService
     }
 
     @Transactional
-    public void addRestaurant(String name, String address) {
+    public RestaurantEntity addRestaurant(String name, String address) {
         RestaurantEntity entity = RestaurantEntity.builder()
                 .name(name)
                 .address(address)
                 .build();
 
-        this.repository.save(entity);
+        return this.repository.save(entity);
     }
 
     @Transactional

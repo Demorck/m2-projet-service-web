@@ -1,6 +1,8 @@
 package fr.isaaconnect.sweb.controllers;
 
 import fr.isaaconnect.sweb.dto.evaluations.EvaluationDTO;
+import fr.isaaconnect.sweb.dto.restaurants.AddRequestRestaurantDTO;
+import fr.isaaconnect.sweb.dto.restaurants.AddResponseRestaurantDTO;
 import fr.isaaconnect.sweb.dto.restaurants.ModifyRestaurantDTO;
 import fr.isaaconnect.sweb.dto.restaurants.RestaurantDTO;
 import fr.isaaconnect.sweb.services.EvaluationService;
@@ -37,11 +39,17 @@ public class RestaurantController
     }
 
     @PostMapping
-    public ResponseEntity<?> addRestaurant(@Valid @RequestBody RestaurantDTO restaurant, BindingResult result) {
+    public ResponseEntity<?> addRestaurant(
+            @Valid @RequestBody AddRequestRestaurantDTO restaurant,
+            BindingResult result
+    ) {
         if (result.hasErrors()) return buildResponseErrorEntityFromBindingResult(result);
 
-        this.restaurantService.addRestaurant(restaurant.getName(), restaurant.getAddress());
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(AddResponseRestaurantDTO.fromEntity(
+                this.restaurantService.addRestaurant(
+                        restaurant.getName(),
+                        restaurant.getAddress()
+                )));
     }
 
     @PatchMapping("/{id}")
