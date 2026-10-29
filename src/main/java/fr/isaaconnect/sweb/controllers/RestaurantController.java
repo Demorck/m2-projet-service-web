@@ -1,6 +1,7 @@
 package fr.isaaconnect.sweb.controllers;
 
 import fr.isaaconnect.sweb.dto.restaurants.RestaurantDTO;
+import fr.isaaconnect.sweb.exceptions.NotFoundException;
 import fr.isaaconnect.sweb.services.RestaurantService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -24,15 +26,21 @@ public class RestaurantController
         return this.service.getRestaurants().stream().map(RestaurantDTO::fromEntity).toList();
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<RestaurantDTO> getRestaurantById(@PathVariable UUID id) {
+        RestaurantDTO dto = RestaurantDTO.fromEntity(this.service.getRestaurantById(id));
+        return ResponseEntity.ok(dto);
+    }
+
     @PostMapping
     public ResponseEntity<?> addRestaurant(@Valid @RequestBody RestaurantDTO restaurant, BindingResult result) {
-        if (result.hasErrors()) return buildResponseErrorEntity(result);
+        if (result.hasErrors()) return buildResponseErrorEntityFromBindingResult(result);
 
         this.service.addRestaurant(restaurant.getName(), restaurant.getAddress());
         return ResponseEntity.ok().build();
     }
 
-    private ResponseEntity<?> buildResponseErrorEntity(BindingResult result) {
+    private ResponseEntity<?> buildResponseErrorEntityFromBindingResult(BindingResult result) {
         List<String> errors = result.getFieldErrors()
                 .stream()
                 .map(FieldError::getDefaultMessage)

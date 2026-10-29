@@ -1,6 +1,8 @@
 package fr.isaaconnect.sweb.services;
 
+import fr.isaaconnect.sweb.dto.restaurants.RestaurantDTO;
 import fr.isaaconnect.sweb.entities.RestaurantEntity;
+import fr.isaaconnect.sweb.exceptions.NotFoundException;
 import fr.isaaconnect.sweb.repositories.RestaurantRepository;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -21,6 +23,13 @@ public class RestaurantService
         return this.repository.findAll();
     }
 
+    public RestaurantEntity getRestaurantById(UUID id)
+    {
+        return this.repository.findById(id).orElseThrow(
+                () -> new NotFoundException("Restaurant with id " + id + " not found")
+        );
+    }
+
     @Transactional
     public void addRestaurant(String name, String address) {
         RestaurantEntity entity = RestaurantEntity.builder()
@@ -30,4 +39,5 @@ public class RestaurantService
 
         this.repository.save(entity);
     }
+
 }
