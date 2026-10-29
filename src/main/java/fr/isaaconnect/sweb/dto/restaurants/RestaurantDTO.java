@@ -16,11 +16,11 @@ import lombok.NoArgsConstructor;
 public class RestaurantDTO
 {
     @NotBlank
-    @Size(max = 90)
+    @Size(max = 90, message = "{restaurant.name.size}")
     private String name;
 
     @NotBlank
-    @Size(max = 255)
+    @Size(max = 255, message = "{restaurant.address.size}")
     private String address;
 
     public static RestaurantDTO fromEntity(RestaurantEntity entity) {

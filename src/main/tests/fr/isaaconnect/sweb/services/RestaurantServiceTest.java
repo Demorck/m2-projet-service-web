@@ -2,6 +2,8 @@ package fr.isaaconnect.sweb.services;
 
 import fr.isaaconnect.sweb.entities.RestaurantEntity;
 import fr.isaaconnect.sweb.repositories.RestaurantRepository;
+import jakarta.validation.ConstraintViolationException;
+import org.hibernate.HibernateException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,6 +16,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -43,10 +46,7 @@ public class RestaurantServiceTest
         when(this.repository.findAll())
             .thenReturn(restaurants);
 
-
-
         List<RestaurantEntity> returnRestaurants = this.service.getRestaurants();
-
         assertEquals(returnRestaurants.size(), restaurants.size());
     }
 }

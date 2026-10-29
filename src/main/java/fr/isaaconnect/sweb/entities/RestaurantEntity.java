@@ -1,16 +1,16 @@
 package fr.isaaconnect.sweb.entities;
 
 import jakarta.persistence.*;
-import jakarta.validation.Constraint;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.validator.constraints.Length;
 
 import java.util.UUID;
 
-@Entity
+@Entity @Builder
 @Getter @Setter
 @Table(name= "restaurant")
+@NoArgsConstructor
+@AllArgsConstructor
 public class RestaurantEntity {
 
     @Id
