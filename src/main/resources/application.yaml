@@ -1,0 +1,32 @@
+spring:
+  config:
+    import: optional:file:.env[.properties]
+  application:
+    name: sweb
+  datasource:
+    url: jdbc:h2:./cours;AUTO_SERVER=TRUE
+    driver-class-name: org.h2.Driver
+    username: root
+    password: root
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+    defer-datasource-initialization: true
+  h2:
+    console:
+      enabled: true
+  servlet:
+    multipart:
+      max-file-size: 5MB
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://keycloak.bober.ovh/realms/master
+          jwk-set-uri: https://keycloak.bober.ovh/realms/master/protocol/openid-connect/certs
+
+s3:
+  access-key: ${S3_ACCESS_KEY}
+  secret-key: ${S3_SECRET_KEY}

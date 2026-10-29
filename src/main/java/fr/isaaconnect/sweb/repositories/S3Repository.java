@@ -1,0 +1,98 @@
+package fr.isaaconnect.sweb.repositories;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Repository;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
+
+import java.net.URI;
+import java.time.Duration;
+
+
+@Repository
+public class S3Repository {
+
+    private static final String BUCKET = "cours-m2";
+    private final S3Client s3Client;
+    private final S3Presigner s3Presigner;
+
+    public S3Repository(
+            @Value("${s3.access-key}") String accessKey,
+            @Value("${s3.secret-key}") String secretKey
+    ) {
+        this.s3Client = S3Client.builder()
+                .credentialsProvider(StaticCredentialsProvider.create(
+                    AwsBasicCredentials.create(accessKey, secretKey)))
+                .endpointOverride(URI.create("https://s3.bober.ovh"))
+                .region(Region.US_EAST_1)
+                .sigv4aSigningRegionSet(RegionSet.GLOBAL)
+                .forcePathStyle(true)
+                .build();
+
+        S3Configuration configuration = S3Configuration.builder()
+                .pathStyleAccessEnabled(true)
+                .build();
+
+        this.s3Presigner = S3Presigner.builder()
+                .credentialsProvider(StaticCredentialsProvider.create(
+                    AwsBasicCredentials.builder()
+                            .accessKeyId(accessKey)
+                            .secretAccessKey(secretKey)
+                            .build())
+                )
+                .endpointOverride(URI.create("https://s3.bober.ovh"))
+                .serviceConfiguration(configuration)
+                .region(Region.US_EAST_1)
+                .build();
+    }
+
+    public void uploadFile(String key, byte[] content, String contentType) {
+        this.s3Client.putObject(
+                b -> b.bucket(BUCKET).key(key).contentType(contentType),
+                RequestBody.fromBytes(content)
+        );
+    }
+
+    public String getUploadFileUrl(String filePath) {
+        PutObjectRequest request = PutObjectRequest.builder()
+                .bucket(BUCKET)
+                .key(filePath)
+                .build();
+
+        PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
+                .signatureDuration(Duration.ofMinutes(10))
+                .putObjectRequest(request)
+                .build();
+
+        return this.s3Presigner.presignPutObject(presignRequest).url().toExternalForm();
+    }
+
+    public String getFileUrl(String filePath) {
+        GetObjectRequest request = GetObjectRequest.builder()
+                .bucket(BUCKET)
+                .key(filePath)
+                .build();
+
+        GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+                .signatureDuration(Duration.ofMinutes(69))
+                .getObjectRequest(request)
+                .build();
+
+        return this.s3Presigner.presignGetObject(presignRequest).url().toExternalForm();
+    }
+
+    public void bucket()
+    {
+        this.s3Client.listBuckets();
+    }
+}
