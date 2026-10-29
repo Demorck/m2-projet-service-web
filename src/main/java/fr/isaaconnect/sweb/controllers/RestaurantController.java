@@ -2,6 +2,8 @@ package fr.isaaconnect.sweb.controllers;
 
 import fr.isaaconnect.sweb.dto.errors.FieldValidationErrorDTO;
 import fr.isaaconnect.sweb.dto.errors.FieldErrorDTO;
+import fr.isaaconnect.sweb.dto.evaluations.AddEvaluationRequestDTO;
+import fr.isaaconnect.sweb.dto.evaluations.AddEvaluationResponseDTO;
 import fr.isaaconnect.sweb.dto.evaluations.EvaluationDTO;
 import fr.isaaconnect.sweb.dto.restaurants.AddRestaurantRequestDTO;
 import fr.isaaconnect.sweb.dto.restaurants.AddRestaurantResponseDTO;
@@ -46,10 +48,11 @@ public class RestaurantController {
         if (result.hasErrors()) return buildResponseErrorEntityFromBindingResult(result);
 
         return ResponseEntity.ok(AddRestaurantResponseDTO.fromEntity(
-                this.restaurantService.addRestaurant(
-                        restaurant.getName(),
-                        restaurant.getAddress()
-                )));
+            this.restaurantService.addRestaurant(
+                    restaurant.getName(),
+                    restaurant.getAddress()
+            )
+        ));
     }
 
     @PatchMapping("/{id}")
@@ -76,24 +79,26 @@ public class RestaurantController {
     @PostMapping("/{id}/evaluations")
     public ResponseEntity<?> addEvaluationByRestaurantId(
             @PathVariable UUID id,
-            @Valid @RequestBody EvaluationDTO evaluation,
+            @Valid @RequestBody AddEvaluationRequestDTO evaluation,
             BindingResult result
     ) {
         if (result.hasErrors()) return this.buildResponseErrorEntityFromBindingResult(result);
 
-        this.evaluationService.addEvaluation(
+
+        return ResponseEntity.ok(AddEvaluationResponseDTO.fromEntity(
+            this.evaluationService.addEvaluation(
                 id,
                 evaluation.getAuthor(),
                 evaluation.getText(),
                 evaluation.getNote()
-        );
-        return ResponseEntity.ok().build();
+            )
+        ));
     }
 
     @DeleteMapping("/{restaurant_id}/evaluations/{evaluation_id}")
     public ResponseEntity<?> removeEvaluationByRestaurantId(
             @PathVariable UUID restaurant_id,
-            @PathVariable String evaluation_id
+            @PathVariable UUID evaluation_id
     ) {
         this.evaluationService.removeEvaluation(restaurant_id, evaluation_id);
         return ResponseEntity.ok().build();

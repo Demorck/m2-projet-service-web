@@ -18,7 +18,7 @@ public class EvaluationService {
     private final RestaurantRepository restaurantRepository;
 
     @Transactional
-    public void addEvaluation(UUID id, String author, String text, int note) {
+    public EvaluationEntity addEvaluation(UUID id, String author, String text, int note) {
         RestaurantEntity restaurant = this.restaurantRepository.findById(id).orElseThrow(() ->
                 new NotFoundException("Restaurant with id " + id + " not found")
         );
@@ -31,17 +31,17 @@ public class EvaluationService {
                 .build();
 
         restaurant.getEvaluations().add(evaluation);
-        this.evaluationRepository.save(evaluation);
-        this.restaurantRepository.save(restaurant);
+
+        return this.evaluationRepository.save(evaluation);
     }
 
-    public void removeEvaluation(UUID restaurantId, String evaluationId) {
+    public void removeEvaluation(UUID restaurantId, UUID evaluationId) {
         RestaurantEntity restaurant = this.restaurantRepository.findById(restaurantId).orElseThrow(() ->
                 new NotFoundException("Restaurant with id " + restaurantId + " not found")
         );
 
         EvaluationEntity entity = restaurant.getEvaluations().stream()
-                .filter(evaluation -> evaluation.getId().equals(UUID.fromString(evaluationId)))
+                .filter(evaluation -> evaluation.getId().equals(evaluationId))
                 .findFirst()
                 .orElseThrow(() -> new NotFoundException("Evaluation with id " + evaluationId + " not found"));
 

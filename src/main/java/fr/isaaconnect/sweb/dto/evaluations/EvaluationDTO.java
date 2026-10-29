@@ -9,23 +9,22 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.Range;
 
+import java.util.UUID;
+
 @Builder
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 public class EvaluationDTO
 {
-    @Size(max = 50, message = "{evaluation.author.size}")
+    private UUID id;
     private String author;
-
-    @Size(max = 255, message = "{evaluation.text.size}")
     private String text;
-
-    @Range(min = 0, max = 3, message = "{evaluation.note.size}")
     private int note;
 
     public static EvaluationDTO fromEntity(EvaluationEntity entity) {
         return EvaluationDTO.builder()
+                .id(entity.getId())
                 .author(entity.getAuthor())
                 .text(entity.getText())
                 .note(entity.getNote())
