@@ -24,6 +24,6 @@ public class RestaurantEntity {
     @Length(max = 255)
     private String address;
 
-    @OneToMany
+    @OneToMany(mappedBy = "restaurant")
     private Collection<EvaluationEntity> evaluations;
 }

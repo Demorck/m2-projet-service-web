@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.IntSummaryStatistics;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Builder
@@ -21,16 +22,10 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class RestaurantDTO
 {
-    @NotBlank
-    @Size(max = 90, message = "{restaurant.name.size}")
+    private UUID id;
     private String name;
-
-    @NotBlank
-    @Size(max = 255, message = "{restaurant.address.size}")
     private String address;
-
     private List<EvaluationDTO> evaluations;
-
     private double mean;
 
     public static RestaurantDTO fromEntity(RestaurantEntity entity) {
@@ -42,6 +37,7 @@ public class RestaurantDTO
         if (stats.getCount() == 0) mean = -1;
 
         return RestaurantDTO.builder()
+                .id(entity.getId())
                 .name(entity.getName())
                 .address(entity.getAddress())
                 .evaluations(entity.getEvaluations().stream().map(EvaluationDTO::fromEntity).toList())

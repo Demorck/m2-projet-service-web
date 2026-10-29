@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class AddRequestRestaurantDTO
+public class AddRestaurantRequestDTO
 {
     @NotBlank
     @Size(max = 90, message = "{restaurant.name.size}")

@@ -3,8 +3,8 @@ package fr.isaaconnect.sweb.controllers;
 import fr.isaaconnect.sweb.dto.errors.FieldValidationErrorDTO;
 import fr.isaaconnect.sweb.dto.errors.FieldErrorDTO;
 import fr.isaaconnect.sweb.dto.evaluations.EvaluationDTO;
-import fr.isaaconnect.sweb.dto.restaurants.AddRequestRestaurantDTO;
-import fr.isaaconnect.sweb.dto.restaurants.AddResponseRestaurantDTO;
+import fr.isaaconnect.sweb.dto.restaurants.AddRestaurantRequestDTO;
+import fr.isaaconnect.sweb.dto.restaurants.AddRestaurantResponseDTO;
 import fr.isaaconnect.sweb.dto.restaurants.ModifyRestaurantDTO;
 import fr.isaaconnect.sweb.dto.restaurants.RestaurantDTO;
 import fr.isaaconnect.sweb.services.EvaluationService;
@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/restaurants")
@@ -41,12 +40,12 @@ public class RestaurantController {
 
     @PostMapping
     public ResponseEntity<?> addRestaurant(
-            @Valid @RequestBody AddRequestRestaurantDTO restaurant,
+            @Valid @RequestBody AddRestaurantRequestDTO restaurant,
             BindingResult result
     ) {
         if (result.hasErrors()) return buildResponseErrorEntityFromBindingResult(result);
 
-        return ResponseEntity.ok(AddResponseRestaurantDTO.fromEntity(
+        return ResponseEntity.ok(AddRestaurantResponseDTO.fromEntity(
                 this.restaurantService.addRestaurant(
                         restaurant.getName(),
                         restaurant.getAddress()

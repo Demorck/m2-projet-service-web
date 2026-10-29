@@ -7,12 +7,12 @@ import lombok.Getter;
 import java.util.UUID;
 
 @Getter @Builder
-public class AddResponseRestaurantDTO
+public class AddRestaurantResponseDTO
 {
     private UUID id;
 
-    public static AddResponseRestaurantDTO fromEntity(RestaurantEntity restaurant) {
-        return AddResponseRestaurantDTO.builder()
+    public static AddRestaurantResponseDTO fromEntity(RestaurantEntity restaurant) {
+        return AddRestaurantResponseDTO.builder()
                 .id(restaurant.getId())
                 .build();
     }
