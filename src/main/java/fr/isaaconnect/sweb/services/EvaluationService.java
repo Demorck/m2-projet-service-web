@@ -13,8 +13,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class EvaluationService
-{
+public class EvaluationService {
     private final EvaluationRepository evaluationRepository;
     private final RestaurantRepository restaurantRepository;
 
@@ -34,5 +33,18 @@ public class EvaluationService
         restaurant.getEvaluations().add(evaluation);
         this.evaluationRepository.save(evaluation);
         this.restaurantRepository.save(restaurant);
+    }
+
+    public void removeEvaluation(UUID restaurantId, String evaluationId) {
+        RestaurantEntity restaurant = this.restaurantRepository.findById(restaurantId).orElseThrow(() ->
+                new NotFoundException("Restaurant with id " + restaurantId + " not found")
+        );
+
+        EvaluationEntity entity = restaurant.getEvaluations().stream()
+                .filter(evaluation -> evaluation.getId().equals(UUID.fromString(evaluationId)))
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException("Evaluation with id " + evaluationId + " not found"));
+
+        this.evaluationRepository.delete(entity);
     }
 }

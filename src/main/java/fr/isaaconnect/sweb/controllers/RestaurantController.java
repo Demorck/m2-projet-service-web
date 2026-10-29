@@ -21,8 +21,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/restaurants")
 @RequiredArgsConstructor
-public class RestaurantController
-{
+public class RestaurantController {
     private final RestaurantService restaurantService;
     private final EvaluationService evaluationService;
 
@@ -87,6 +86,15 @@ public class RestaurantController
                 evaluation.getText(),
                 evaluation.getNote()
         );
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{restaurant_id}/evaluations/{evaluation_id}")
+    public ResponseEntity<?> removeEvaluationByRestaurantId(
+            @PathVariable UUID restaurant_id,
+            @PathVariable String evaluation_id
+    ) {
+        this.evaluationService.removeEvaluation(restaurant_id, evaluation_id);
         return ResponseEntity.ok().build();
     }
 
