@@ -1,7 +1,7 @@
 package fr.isaaconnect.sweb.controllers;
 
+import fr.isaaconnect.sweb.dto.restaurants.ModifyRestaurantDTO;
 import fr.isaaconnect.sweb.dto.restaurants.RestaurantDTO;
-import fr.isaaconnect.sweb.exceptions.NotFoundException;
 import fr.isaaconnect.sweb.services.RestaurantService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +37,18 @@ public class RestaurantController
         if (result.hasErrors()) return buildResponseErrorEntityFromBindingResult(result);
 
         this.service.addRestaurant(restaurant.getName(), restaurant.getAddress());
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<?> modifyRestaurant(
+            @PathVariable UUID id,
+            @Valid @RequestBody ModifyRestaurantDTO restaurant,
+            BindingResult result
+    ) {
+        if (result.hasErrors()) return buildResponseErrorEntityFromBindingResult(result);
+
+        this.service.modifyRestaurant(id, restaurant.getName(), restaurant.getAddress());
         return ResponseEntity.ok().build();
     }
 

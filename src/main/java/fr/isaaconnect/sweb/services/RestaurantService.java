@@ -40,4 +40,14 @@ public class RestaurantService
         this.repository.save(entity);
     }
 
+    @Transactional
+    public void modifyRestaurant(UUID id, String name, String address)
+    {
+        RestaurantEntity entity = this.getRestaurantById(id);
+
+        if (name != null) entity.setName(name);
+        if (address != null) entity.setAddress(address);
+
+        this.repository.save(entity);
+    }
 }

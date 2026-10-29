@@ -3,9 +3,6 @@ package fr.isaaconnect.sweb.services;
 import fr.isaaconnect.sweb.entities.RestaurantEntity;
 import fr.isaaconnect.sweb.exceptions.NotFoundException;
 import fr.isaaconnect.sweb.repositories.RestaurantRepository;
-import jakarta.validation.ConstraintViolationException;
-import org.hibernate.HibernateException;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,7 +16,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class RestaurantServiceTest
@@ -61,7 +58,7 @@ public class RestaurantServiceTest
                 .address("Address 1")
                 .build();
 
-        when(this.repository.findById(id)).thenReturn(Optional.ofNullable(entity));
+        when(this.repository.findById(id)).thenReturn(Optional.of(entity));
 
         RestaurantEntity returnedEntity = this.service.getRestaurantById(id);
         assertEquals(entity.getName(), returnedEntity.getName());
@@ -71,8 +68,47 @@ public class RestaurantServiceTest
     @Test
     void get_restaurant_not_found_should_throw_an_error() {
         UUID id = UUID.randomUUID();
-        when(this.repository.findById(id)).thenThrow(NotFoundException.class);
+        when(this.repository.findById(id)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> this.service.getRestaurantById(id));
+    }
+
+    @Test
+    void modify_one_field_only_modifies_this_field() {
+        UUID id = UUID.randomUUID();
+        RestaurantEntity entity = RestaurantEntity.builder()
+                .id(id)
+                .name("Restaurant 1")
+                .address("Address 1")
+                .build();
+
+        when(this.repository.findById(id)).thenReturn(Optional.of(entity));
+        this.service.modifyRestaurant(id, "Restaurant 2", null);
+        assertEquals("Restaurant 2", entity.getName());
+
+        this.service.modifyRestaurant(id, null, "Adresse 2");
+        assertEquals("Adresse 2", entity.getAddress());
+    }
+
+    @Test
+    void modify_zero_field_should_not_modify_entity() {
+        UUID id = UUID.randomUUID();
+        RestaurantEntity entity = RestaurantEntity.builder()
+                .id(id)
+                .name("Restaurant 1")
+                .address("Address 1")
+                .build();
+
+        when(this.repository.findById(id)).thenReturn(Optional.of(entity));
+        this.service.modifyRestaurant(id, null, null);
+        assertEquals("Restaurant 1", entity.getName());
+        assertEquals("Address 1", entity.getAddress());
+    }
+
+    @Test
+    void database_should_be_updated_once() {
+        this.modify_one_field_only_modifies_this_field();
+
+        verify(repository, times(2)).findById(any(UUID.class));
     }
 }
