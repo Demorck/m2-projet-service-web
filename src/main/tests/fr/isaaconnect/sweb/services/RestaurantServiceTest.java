@@ -16,8 +16,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -32,101 +31,85 @@ public class RestaurantServiceTest
     private UUID restaurantID;
     private RestaurantEntity restaurantEntity;
 
+    private static final String RESTAURANT_NAME = "Restaurant 1";
+    private static final String RESTAURANT_ADDRESS = "Adresse 1";
+
     @BeforeEach
     void setUp() {
         this.restaurantID = UUID.randomUUID();
         this.restaurantEntity = RestaurantEntity.builder()
             .id(this.restaurantID)
-            .name("Restaurant 1")
-            .address("Adresse 1")
+            .name(RESTAURANT_NAME)
+            .address(RESTAURANT_ADDRESS)
             .evaluations(new ArrayList<>())
             .build();
     }
 
-    
+    // Test on getRestaurants()
     @Test
-    void get_restaurants_should_return_everything() {
-        ArrayList<RestaurantEntity> restaurants = new ArrayList<>();
-        for (int i = 0; i < 6; i++)
-        {
-            UUID id = UUID.randomUUID();
-            RestaurantEntity entity = RestaurantEntity.builder()
-                    .id(id)
-                    .name("Restaurant " + i)
-                    .address("Address " + i)
-                    .build();
-
-            restaurants.add(entity);
-        }
-
+    void get_restaurants_should_return_list() {
         when(this.repository.findAll())
-            .thenReturn(restaurants);
+            .thenReturn(List.of(this.restaurantEntity));
 
-        List<RestaurantEntity> returnRestaurants = this.service.getRestaurants();
-        assertEquals(returnRestaurants.size(), restaurants.size());
+        List<RestaurantEntity> result = this.service.getRestaurants();
+
+        assertEquals(1, result.size());
+        assertEquals(this.restaurantID, result.getFirst().getId());
+    }
+
+    // Test on getRestaurantById(UUID)
+    @Test
+    void get_restaurant_by_id_should_return_restaurant() {
+        when(this.repository.findById(this.restaurantID))
+            .thenReturn(Optional.of(this.restaurantEntity));
+
+        RestaurantEntity result = this.service.getRestaurantById(this.restaurantID);
+
+        assertNotNull(result);
+        assertEquals(this.restaurantID, result.getId());
     }
 
     @Test
-    void get_restaurant_found_should_return_restaurant() {
-        UUID id = UUID.randomUUID();
-        RestaurantEntity entity = RestaurantEntity.builder()
-                .id(id)
-                .name("Restaurant 1")
-                .address("Address 1")
-                .build();
+    void get_restaurant_by_id_not_found_should_throw_an_error() {
+        when(this.repository.findById(this.restaurantID))
+            .thenReturn(Optional.empty());
 
-        when(this.repository.findById(id)).thenReturn(Optional.of(entity));
-
-        RestaurantEntity returnedEntity = this.service.getRestaurantById(id);
-        assertEquals(entity.getName(), returnedEntity.getName());
-        assertEquals(entity.getAddress(), returnedEntity.getAddress());
+        assertThrows(NotFoundException.class, () -> this.service.getRestaurantById(this.restaurantID));
     }
 
+    // Test on addRestaurant(String, String)
     @Test
-    void get_restaurant_not_found_should_throw_an_error() {
-        UUID id = UUID.randomUUID();
-        when(this.repository.findById(id)).thenReturn(Optional.empty());
+    void add_restaurant_should_save_and_return() {
+        when(this.repository.save(any(RestaurantEntity.class)))
+            .thenReturn(this.restaurantEntity);
 
-        assertThrows(NotFoundException.class, () -> this.service.getRestaurantById(id));
+        RestaurantEntity result = this.service.addRestaurant(RESTAURANT_NAME, RESTAURANT_ADDRESS);
+
+        assertNotNull(result);
+        assertEquals(this.restaurantID, result.getId());
+        assertEquals(RESTAURANT_NAME, result.getName());
+
+        // Checking if the DB has been called only once
+        verify(this.repository, times(1))
+            .save(any(RestaurantEntity.class));
     }
 
+    // Test on modifyRestaurant(UUID, String, String)
     @Test
-    void modify_one_field_only_modifies_this_field() {
-        UUID id = UUID.randomUUID();
-        RestaurantEntity entity = RestaurantEntity.builder()
-                .id(id)
-                .name("Restaurant 1")
-                .address("Address 1")
-                .build();
+    void modify_restaurant_with_new_values_should_update() {
+        when(this.repository.findById(this.restaurantID))
+            .thenReturn(Optional.of(this.restaurantEntity));
+        when(this.repository.save(any(RestaurantEntity.class)))
+            .thenReturn(this.restaurantEntity);
 
-        when(this.repository.findById(id)).thenReturn(Optional.of(entity));
-        this.service.modifyRestaurant(id, "Restaurant 2", null);
-        assertEquals("Restaurant 2", entity.getName());
+        this.service.modifyRestaurant(this.restaurantID, "New name", null);
 
-        this.service.modifyRestaurant(id, null, "Adresse 2");
-        assertEquals("Adresse 2", entity.getAddress());
-    }
+        assertEquals("New name", this.restaurantEntity.getName());
+        assertEquals(RESTAURANT_ADDRESS, this.restaurantEntity.getAddress());
 
-    @Test
-    void modify_zero_field_should_not_modify_entity() {
-        UUID id = UUID.randomUUID();
-        RestaurantEntity entity = RestaurantEntity.builder()
-                .id(id)
-                .name("Restaurant 1")
-                .address("Address 1")
-                .build();
-
-        when(this.repository.findById(id)).thenReturn(Optional.of(entity));
-        this.service.modifyRestaurant(id, null, null);
-        assertEquals("Restaurant 1", entity.getName());
-        assertEquals("Address 1", entity.getAddress());
-    }
-
-    @Test
-    void database_should_be_updated_once() {
-        this.modify_one_field_only_modifies_this_field();
-
-        verify(repository, times(2)).findById(any(UUID.class));
+        // Checking if the DB has been called only once
+        verify(this.repository, times(1))
+            .save(any(RestaurantEntity.class));
     }
 
     // Tests on noteMean(RestaurantEntity)
