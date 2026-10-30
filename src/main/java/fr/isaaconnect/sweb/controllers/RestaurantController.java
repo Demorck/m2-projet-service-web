@@ -1,8 +1,5 @@
 package fr.isaaconnect.sweb.controllers;
 
-import fr.isaaconnect.sweb.dto.errors.ErrorResponseDTO;
-import fr.isaaconnect.sweb.dto.errors.FieldErrorDTO;
-import fr.isaaconnect.sweb.dto.errors.FieldValidationErrorDTO;
 import fr.isaaconnect.sweb.dto.evaluations.AddEvaluationRequestDTO;
 import fr.isaaconnect.sweb.dto.evaluations.AddEvaluationResponseDTO;
 import fr.isaaconnect.sweb.dto.evaluations.EvaluationDTO;
@@ -16,13 +13,10 @@ import fr.isaaconnect.sweb.services.EvaluationService;
 import fr.isaaconnect.sweb.services.RestaurantService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,6 +25,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/restaurants")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class RestaurantController {
     private final RestaurantService restaurantService;
     private final EvaluationService evaluationService;
@@ -46,11 +41,8 @@ public class RestaurantController {
 
     @PostMapping
     public ResponseEntity<?> addRestaurant(
-        @Valid @RequestBody AddRestaurantRequestDTO restaurant,
-        BindingResult result
+        @Valid @RequestBody AddRestaurantRequestDTO restaurant
     ) {
-        if (result.hasErrors()) return buildResponseErrorEntityFromBindingResult(result);
-
         return ResponseEntity.ok(AddRestaurantResponseDTO.fromEntity(
             this.restaurantService.addRestaurant(
                 restaurant.getName(),
@@ -69,11 +61,8 @@ public class RestaurantController {
     @PatchMapping("/{id}")
     public ResponseEntity<?> modifyRestaurant(
         @PathVariable UUID id,
-        @Valid @RequestBody ModifyRestaurantDTO restaurant,
-        BindingResult result
+        @Valid @RequestBody ModifyRestaurantDTO restaurant
     ) {
-        if (result.hasErrors()) return buildResponseErrorEntityFromBindingResult(result);
-
         this.restaurantService.modifyRestaurant(id, restaurant.getName(), restaurant.getAddress());
         return ResponseEntity.ok().build();
     }
@@ -110,19 +99,8 @@ public class RestaurantController {
     public ResponseEntity<?> addEvaluationByRestaurantId(
         @PathVariable UUID id,
         @Valid @RequestBody AddEvaluationRequestDTO evaluation,
-        BindingResult result,
         @AuthenticationPrincipal Jwt auth
     ) {
-        if (result.hasErrors()) return this.buildResponseErrorEntityFromBindingResult(result);
-
-        if (auth == null)
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
-                ErrorResponseDTO.builder()
-                    .code(HttpStatus.FORBIDDEN.value())
-                    .message("JWT Token is probably corrupted")
-                    .build()
-            );
-
         return ResponseEntity.ok(AddEvaluationResponseDTO.fromEntity(
             this.evaluationService.addEvaluation(
                 id,
@@ -141,21 +119,5 @@ public class RestaurantController {
     ) {
         this.evaluationService.removeEvaluation(restaurant_id, evaluation_id);
         return ResponseEntity.ok().build();
-    }
-
-
-    // ERROR HANDLER
-    private ResponseEntity<FieldValidationErrorDTO> buildResponseErrorEntityFromBindingResult(BindingResult result) {
-        List<FieldErrorDTO> errors = result.getFieldErrors()
-            .stream()
-            .map(FieldErrorDTO::fromFieldError)
-            .toList();
-
-        return ResponseEntity.badRequest().body(FieldValidationErrorDTO.builder()
-            .code(HttpStatus.BAD_REQUEST.value())
-            .message("Fields provide are wrong")
-            .fieldErrors(errors)
-            .build()
-        );
     }
 }
