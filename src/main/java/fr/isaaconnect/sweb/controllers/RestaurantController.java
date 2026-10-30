@@ -77,6 +77,14 @@ public class RestaurantController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/{id}/image")
+    public ResponseEntity<ImageURLResponseDTO> getRestaurantImageUrl(@PathVariable UUID id) {
+        return ResponseEntity.ok(ImageURLResponseDTO.builder()
+            .url(this.restaurantService.getImage(id))
+            .build()
+        );
+    }
+
     @PostMapping("/{id}/image")
     public ResponseEntity<ImageURLResponseDTO> getRestaurantUploadImageUrl(@PathVariable UUID id) {
         return ResponseEntity.ok(ImageURLResponseDTO.builder()

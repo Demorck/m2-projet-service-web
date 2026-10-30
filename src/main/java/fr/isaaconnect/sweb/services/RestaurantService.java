@@ -66,6 +66,19 @@ public class RestaurantService {
         return this.s3.getUploadUrl(restaurantId, imageId);
     }
 
+
+    public String getImage(UUID restaurantId) {
+        UUID imageId = this.repository.findById(restaurantId).orElseThrow(
+            () -> new NotFoundException("Restaurant with id " + restaurantId + " not found")
+        ).getImageId();
+
+        if (imageId == null || !this.s3.exists(restaurantId, imageId))
+            throw new NotFoundException("This restaurant does not have an image");
+
+
+        return this.s3.getDownloadUrl(restaurantId, imageId);
+    }
+
     public Double noteMean(RestaurantEntity entity) {
         IntSummaryStatistics stats = entity.getEvaluations().stream()
             .mapToInt(EvaluationEntity::getNote)
