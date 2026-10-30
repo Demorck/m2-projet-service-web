@@ -10,6 +10,7 @@ import fr.isaaconnect.sweb.dto.restaurants.AddRestaurantRequestDTO;
 import fr.isaaconnect.sweb.dto.restaurants.AddRestaurantResponseDTO;
 import fr.isaaconnect.sweb.dto.restaurants.ModifyRestaurantDTO;
 import fr.isaaconnect.sweb.dto.restaurants.RestaurantDTO;
+import fr.isaaconnect.sweb.dto.uploads.ImageURLResponseDTO;
 import fr.isaaconnect.sweb.entities.RestaurantEntity;
 import fr.isaaconnect.sweb.services.EvaluationService;
 import fr.isaaconnect.sweb.services.RestaurantService;
@@ -42,13 +43,6 @@ public class RestaurantController {
             .toList();
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<RestaurantDTO> getRestaurantById(@PathVariable UUID id) {
-        RestaurantEntity entity = this.restaurantService.getRestaurantById(id);
-        RestaurantDTO dto = RestaurantDTO.fromEntity(entity, this.restaurantService.noteMean(entity));
-        return ResponseEntity.ok(dto);
-    }
-
     @PostMapping
     public ResponseEntity<?> addRestaurant(
         @Valid @RequestBody AddRestaurantRequestDTO restaurant,
@@ -64,6 +58,13 @@ public class RestaurantController {
         ));
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<RestaurantDTO> getRestaurantById(@PathVariable UUID id) {
+        RestaurantEntity entity = this.restaurantService.getRestaurantById(id);
+        RestaurantDTO dto = RestaurantDTO.fromEntity(entity, this.restaurantService.noteMean(entity));
+        return ResponseEntity.ok(dto);
+    }
+
     @PatchMapping("/{id}")
     public ResponseEntity<?> modifyRestaurant(
         @PathVariable UUID id,
@@ -74,6 +75,14 @@ public class RestaurantController {
 
         this.restaurantService.modifyRestaurant(id, restaurant.getName(), restaurant.getAddress());
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{id}/image")
+    public ResponseEntity<ImageURLResponseDTO> getRestaurantUploadImageUrl(@PathVariable UUID id) {
+        return ResponseEntity.ok(ImageURLResponseDTO.builder()
+            .url(this.restaurantService.getUploadImage(id))
+            .build()
+        );
     }
 
 
@@ -122,6 +131,8 @@ public class RestaurantController {
         return ResponseEntity.ok().build();
     }
 
+
+    // ERROR HANDLER
     private ResponseEntity<FieldValidationErrorDTO> buildResponseErrorEntityFromBindingResult(BindingResult result) {
         List<FieldErrorDTO> errors = result.getFieldErrors()
             .stream()

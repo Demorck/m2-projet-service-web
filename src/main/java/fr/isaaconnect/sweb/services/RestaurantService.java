@@ -4,6 +4,7 @@ import fr.isaaconnect.sweb.entities.EvaluationEntity;
 import fr.isaaconnect.sweb.entities.RestaurantEntity;
 import fr.isaaconnect.sweb.exceptions.NotFoundException;
 import fr.isaaconnect.sweb.repositories.RestaurantRepository;
+import fr.isaaconnect.sweb.services.s3.RestaurantS3Service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +17,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class RestaurantService {
     private final RestaurantRepository repository;
+    private final RestaurantS3Service s3;
 
     public List<RestaurantEntity> getRestaurants() {
         return this.repository.findAll();
@@ -45,6 +47,16 @@ public class RestaurantService {
         if (address != null) entity.setAddress(address);
 
         this.repository.save(entity);
+    }
+
+    public String getUploadImage(UUID restaurantId) {
+        UUID imageId = this.repository.findById(restaurantId).orElseThrow(
+            () -> new NotFoundException("Restaurant with id " + restaurantId + " not found")
+        ).getImageId();
+
+        if (imageId == null) imageId = UUID.randomUUID();
+
+        return this.s3.getUploadUrl(restaurantId, imageId);
     }
 
     public Double noteMean(RestaurantEntity entity) {

@@ -28,4 +28,6 @@ public class RestaurantEntity {
 
     @OneToMany(mappedBy = "restaurant")
     private Collection<EvaluationEntity> evaluations;
+
+    private UUID imageId;
 }

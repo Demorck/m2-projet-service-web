@@ -1,14 +1,14 @@
 package fr.isaaconnect.sweb.dto.uploads;
 
-import jakarta.validation.constraints.NotBlank;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
 public class ImageURLResponseDTO {
-    @Getter
-    @Setter
-    @NotBlank
-    public String url;
+    private String url;
 }
