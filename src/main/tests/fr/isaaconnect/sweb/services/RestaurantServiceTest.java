@@ -1,8 +1,10 @@
 package fr.isaaconnect.sweb.services;
 
+import fr.isaaconnect.sweb.entities.EvaluationEntity;
 import fr.isaaconnect.sweb.entities.RestaurantEntity;
 import fr.isaaconnect.sweb.exceptions.NotFoundException;
 import fr.isaaconnect.sweb.repositories.RestaurantRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -26,6 +28,21 @@ public class RestaurantServiceTest
 
     @Mock
     private RestaurantRepository repository;
+
+    private UUID restaurantID;
+    private RestaurantEntity restaurantEntity;
+
+    @BeforeEach
+    void setUp() {
+        this.restaurantID = UUID.randomUUID();
+        this.restaurantEntity = RestaurantEntity.builder()
+            .id(this.restaurantID)
+            .name("Restaurant 1")
+            .address("Adresse 1")
+            .evaluations(new ArrayList<>())
+            .build();
+    }
+
     
     @Test
     void get_restaurants_should_return_everything() {
@@ -110,5 +127,23 @@ public class RestaurantServiceTest
         this.modify_one_field_only_modifies_this_field();
 
         verify(repository, times(2)).findById(any(UUID.class));
+    }
+
+    // Tests on noteMean(RestaurantEntity)
+    @Test
+    void note_mean_without_evaluation_should_return_minus_one() {
+        Double mean = this.service.noteMean(this.restaurantEntity);
+        assertEquals(-1.0, mean);
+    }
+
+    @Test
+    void note_mean_with_evaluations_should_return_correct_average() {
+        EvaluationEntity eval1 = EvaluationEntity.builder().note(3).build();
+        EvaluationEntity eval2 = EvaluationEntity.builder().note(2).build();
+
+        this.restaurantEntity.setEvaluations(List.of(eval1, eval2));
+        Double mean = this.service.noteMean(this.restaurantEntity);
+
+        assertEquals(2.5, mean);
     }
 }
