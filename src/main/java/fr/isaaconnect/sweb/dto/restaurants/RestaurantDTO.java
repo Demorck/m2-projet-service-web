@@ -28,14 +28,7 @@ public class RestaurantDTO
     private List<EvaluationDTO> evaluations;
     private double mean;
 
-    public static RestaurantDTO fromEntity(RestaurantEntity entity) {
-        IntSummaryStatistics stats = entity.getEvaluations().stream()
-                .mapToInt(EvaluationEntity::getNote)
-                .summaryStatistics();
-
-        double mean = stats.getAverage();
-        if (stats.getCount() == 0) mean = -1;
-
+    public static RestaurantDTO fromEntity(RestaurantEntity entity, double mean) {
         return RestaurantDTO.builder()
                 .id(entity.getId())
                 .name(entity.getName())

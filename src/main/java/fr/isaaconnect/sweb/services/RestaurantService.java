@@ -1,5 +1,6 @@
 package fr.isaaconnect.sweb.services;
 
+import fr.isaaconnect.sweb.entities.EvaluationEntity;
 import fr.isaaconnect.sweb.entities.RestaurantEntity;
 import fr.isaaconnect.sweb.exceptions.NotFoundException;
 import fr.isaaconnect.sweb.repositories.RestaurantRepository;
@@ -7,7 +8,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.IntSummaryStatistics;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -46,5 +49,13 @@ public class RestaurantService
         if (address != null) entity.setAddress(address);
 
         this.repository.save(entity);
+    }
+
+    public Double noteMean(RestaurantEntity entity) {
+        IntSummaryStatistics stats = entity.getEvaluations().stream()
+                .mapToInt(EvaluationEntity::getNote)
+                .summaryStatistics();
+
+        return stats.getCount() == 0 ? stats.getAverage() : -1;
     }
 }

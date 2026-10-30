@@ -9,6 +9,7 @@ import fr.isaaconnect.sweb.dto.restaurants.AddRestaurantRequestDTO;
 import fr.isaaconnect.sweb.dto.restaurants.AddRestaurantResponseDTO;
 import fr.isaaconnect.sweb.dto.restaurants.ModifyRestaurantDTO;
 import fr.isaaconnect.sweb.dto.restaurants.RestaurantDTO;
+import fr.isaaconnect.sweb.entities.RestaurantEntity;
 import fr.isaaconnect.sweb.services.EvaluationService;
 import fr.isaaconnect.sweb.services.RestaurantService;
 import jakarta.validation.Valid;
@@ -31,12 +32,16 @@ public class RestaurantController {
     // RESTAURANTS
     @GetMapping
     public List<RestaurantDTO> getRestaurants() {
-        return this.restaurantService.getRestaurants().stream().map(RestaurantDTO::fromEntity).toList();
+        return this.restaurantService.getRestaurants()
+                .stream()
+                .map(entry -> RestaurantDTO.fromEntity(entry, this.restaurantService.noteMean(entry)))
+                .toList();
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<RestaurantDTO> getRestaurantById(@PathVariable UUID id) {
-        RestaurantDTO dto = RestaurantDTO.fromEntity(this.restaurantService.getRestaurantById(id));
+        RestaurantEntity entity = this.restaurantService.getRestaurantById(id);
+        RestaurantDTO dto = RestaurantDTO.fromEntity(entity, this.restaurantService.noteMean(entity));
         return ResponseEntity.ok(dto);
     }
 
@@ -71,7 +76,8 @@ public class RestaurantController {
     // EVALUATIONS
     @GetMapping("/{id}/evaluations")
     public ResponseEntity<List<EvaluationDTO>> getEvaluationsByRestaurantId(@PathVariable UUID id) {
-        RestaurantDTO dto = RestaurantDTO.fromEntity(this.restaurantService.getRestaurantById(id));
+        RestaurantEntity entity = this.restaurantService.getRestaurantById(id);
+        RestaurantDTO dto = RestaurantDTO.fromEntity(entity, this.restaurantService.noteMean(entity));
 
         return ResponseEntity.ok(dto.getEvaluations());
     }
@@ -113,7 +119,7 @@ public class RestaurantController {
         return ResponseEntity.badRequest().body(FieldValidationErrorDTO.builder()
                 .code(HttpStatus.BAD_REQUEST.value())
                 .message("Fields provide are wrong")
-                .fieldErrors(errors.stream().toList())
+                .fieldErrors(errors)
                 .build()
         );
     }
