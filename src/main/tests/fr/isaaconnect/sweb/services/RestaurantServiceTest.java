@@ -4,6 +4,7 @@ import fr.isaaconnect.sweb.entities.EvaluationEntity;
 import fr.isaaconnect.sweb.entities.RestaurantEntity;
 import fr.isaaconnect.sweb.exceptions.NotFoundException;
 import fr.isaaconnect.sweb.repositories.RestaurantRepository;
+import fr.isaaconnect.sweb.services.s3.RestaurantS3Service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,11 +29,15 @@ public class RestaurantServiceTest
     @Mock
     private RestaurantRepository repository;
 
+    @Mock
+    private RestaurantS3Service s3;
+
     private UUID restaurantID;
     private RestaurantEntity restaurantEntity;
 
     private static final String RESTAURANT_NAME = "Restaurant 1";
     private static final String RESTAURANT_ADDRESS = "Adresse 1";
+    private static final String S3_MOCK_URL = "https://s3.url/mock";
 
     @BeforeEach
     void setUp() {
@@ -110,6 +115,75 @@ public class RestaurantServiceTest
         // Checking if the DB has been called only once
         verify(this.repository, times(1))
             .save(any(RestaurantEntity.class));
+    }
+
+    // Test on getUploadImage(UUID)
+    @Test
+    void get_upload_image_when_image_id_null_should_generate_one_and_return_url() {
+        when(this.repository.findById(this.restaurantID))
+            .thenReturn(Optional.of(this.restaurantEntity));
+        when(this.repository.save(any(RestaurantEntity.class)))
+            .thenReturn(this.restaurantEntity);
+        when(this.s3.getUploadUrl(eq(this.restaurantID), any(UUID.class)))
+            .thenReturn(S3_MOCK_URL);
+
+        String url = this.service.getUploadImage(this.restaurantID);
+
+        assertEquals(S3_MOCK_URL, url);
+    }
+
+    @Test
+    void get_upload_image_when_image_id_exists_should_return_url() {
+        UUID imageId = UUID.randomUUID();
+        this.restaurantEntity.setImageId(imageId);
+
+        when(this.repository.findById(this.restaurantID))
+            .thenReturn(Optional.of(this.restaurantEntity));
+        when(this.s3.getUploadUrl(this.restaurantID, imageId))
+            .thenReturn(S3_MOCK_URL);
+
+        String url = this.service.getUploadImage(this.restaurantID);
+
+        assertEquals(S3_MOCK_URL, url);
+        verify(this.repository, times(0))
+            .save(any(RestaurantEntity.class));
+    }
+
+    // Test on getImage(UUID)
+    @Test
+    void get_image_when_exists_should_return_download_url() {
+        UUID image = UUID.randomUUID();
+        this.restaurantEntity.setImageId(image);
+        when(this.repository.findById(this.restaurantID))
+            .thenReturn(Optional.of(this.restaurantEntity));
+        when(this.s3.exists(this.restaurantID, image))
+            .thenReturn(true);
+        when(this.s3.getDownloadUrl(eq(this.restaurantID), any(UUID.class)))
+            .thenReturn(S3_MOCK_URL);
+
+        String url = this.service.getImage(this.restaurantID);
+
+        assertEquals(S3_MOCK_URL, url);
+    }
+
+    @Test
+    void get_image_when_image_id_is_null_should_throw_not_found() {
+        when(this.repository.findById(this.restaurantID))
+            .thenReturn(Optional.of(this.restaurantEntity));
+
+        assertThrows(NotFoundException.class, () -> this.service.getImage(this.restaurantID));
+    }
+
+    @Test
+    void get_image_when_not_exists_in_s3_should_throw_not_found() {
+        UUID image = UUID.randomUUID();
+        this.restaurantEntity.setImageId(image);
+        when(this.repository.findById(this.restaurantID))
+            .thenReturn(Optional.of(this.restaurantEntity));
+        when(this.s3.exists(this.restaurantID, image))
+            .thenReturn(false);
+
+        assertThrows(NotFoundException.class, () -> this.service.getImage(this.restaurantID));
     }
 
     // Tests on noteMean(RestaurantEntity)
