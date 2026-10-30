@@ -7,9 +7,11 @@ import org.hibernate.validator.constraints.Length;
 import java.util.Collection;
 import java.util.UUID;
 
-@Entity @Builder
-@Getter @Setter
-@Table(name= "restaurant")
+@Entity
+@Builder
+@Getter
+@Setter
+@Table(name = "restaurant")
 @NoArgsConstructor
 @AllArgsConstructor
 public class RestaurantEntity {

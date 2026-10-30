@@ -16,8 +16,8 @@ public class FieldErrorDTO {
 
     public static FieldErrorDTO fromFieldError(FieldError error) {
         return FieldErrorDTO.builder()
-                .fieldName(error.getField())
-                .message(error.getDefaultMessage())
-                .build();
+            .fieldName(error.getField())
+            .message(error.getDefaultMessage())
+            .build();
     }
 }

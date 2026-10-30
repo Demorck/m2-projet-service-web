@@ -6,14 +6,14 @@ import lombok.Getter;
 
 import java.util.UUID;
 
-@Getter @Builder
-public class AddEvaluationResponseDTO
-{
+@Getter
+@Builder
+public class AddEvaluationResponseDTO {
     private UUID id;
 
     public static AddEvaluationResponseDTO fromEntity(EvaluationEntity evaluation) {
         return AddEvaluationResponseDTO.builder()
-                .id(evaluation.getId())
-                .build();
+            .id(evaluation.getId())
+            .build();
     }
 }

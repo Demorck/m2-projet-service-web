@@ -7,14 +7,14 @@ import org.hibernate.validator.constraints.Range;
 
 import java.util.UUID;
 
-@Entity @Builder
+@Entity
+@Builder
 @Getter
 @Setter
-@Table(name= "evaluation")
+@Table(name = "evaluation")
 @NoArgsConstructor
 @AllArgsConstructor
-public class EvaluationEntity
-{
+public class EvaluationEntity {
     @Id
     @GeneratedValue
     private UUID id;

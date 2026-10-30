@@ -14,34 +14,31 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class RestaurantService
-{
+public class RestaurantService {
     private final RestaurantRepository repository;
 
     public List<RestaurantEntity> getRestaurants() {
         return this.repository.findAll();
     }
 
-    public RestaurantEntity getRestaurantById(UUID id)
-    {
+    public RestaurantEntity getRestaurantById(UUID id) {
         return this.repository.findById(id).orElseThrow(
-                () -> new NotFoundException("Restaurant with id " + id + " not found")
+            () -> new NotFoundException("Restaurant with id " + id + " not found")
         );
     }
 
     @Transactional
     public RestaurantEntity addRestaurant(String name, String address) {
         RestaurantEntity entity = RestaurantEntity.builder()
-                .name(name)
-                .address(address)
-                .build();
+            .name(name)
+            .address(address)
+            .build();
 
         return this.repository.save(entity);
     }
 
     @Transactional
-    public void modifyRestaurant(UUID id, String name, String address)
-    {
+    public void modifyRestaurant(UUID id, String name, String address) {
         RestaurantEntity entity = this.getRestaurantById(id);
 
         if (name != null) entity.setName(name);
@@ -52,8 +49,8 @@ public class RestaurantService
 
     public Double noteMean(RestaurantEntity entity) {
         IntSummaryStatistics stats = entity.getEvaluations().stream()
-                .mapToInt(EvaluationEntity::getNote)
-                .summaryStatistics();
+            .mapToInt(EvaluationEntity::getNote)
+            .summaryStatistics();
 
         return stats.getCount() == 0 ? stats.getAverage() : -1;
     }

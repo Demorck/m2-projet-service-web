@@ -1,13 +1,10 @@
 package fr.isaaconnect.sweb.dto.evaluations;
 
 import fr.isaaconnect.sweb.entities.EvaluationEntity;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.validator.constraints.Range;
 
 import java.util.UUID;
 
@@ -15,8 +12,7 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class EvaluationDTO
-{
+public class EvaluationDTO {
     private UUID id;
     private String author;
     private String text;
@@ -24,10 +20,10 @@ public class EvaluationDTO
 
     public static EvaluationDTO fromEntity(EvaluationEntity entity) {
         return EvaluationDTO.builder()
-                .id(entity.getId())
-                .author(entity.getAuthor())
-                .text(entity.getText())
-                .note(entity.getNote())
-                .build();
+            .id(entity.getId())
+            .author(entity.getAuthor())
+            .text(entity.getText())
+            .note(entity.getNote())
+            .build();
     }
 }

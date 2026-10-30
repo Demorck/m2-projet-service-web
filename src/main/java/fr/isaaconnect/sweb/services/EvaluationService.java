@@ -19,7 +19,6 @@ public class EvaluationService {
     private final RestaurantRepository restaurantRepository;
 
 
-
     @Transactional
     public List<EvaluationEntity> getEvaluationByAuthor(UUID authorId) {
         return this.evaluationRepository.findByAuthorId(authorId);

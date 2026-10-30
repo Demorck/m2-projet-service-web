@@ -15,20 +15,20 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler
     public ResponseEntity<ErrorResponseDTO> handle(NotFoundException exception) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ErrorResponseDTO.builder()
-                        .code(HttpStatus.NOT_FOUND.value())
-                        .message(exception.getMessage())
-                        .build()
-                );
+            .body(ErrorResponseDTO.builder()
+                .code(HttpStatus.NOT_FOUND.value())
+                .message(exception.getMessage())
+                .build()
+            );
     }
 
     @ExceptionHandler
     public ResponseEntity<ErrorResponseDTO> handle(ConflictException exception) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(ErrorResponseDTO.builder()
-                        .code(HttpStatus.CONFLICT.value())
-                        .message(exception.getMessage())
-                        .build()
-                );
+            .body(ErrorResponseDTO.builder()
+                .code(HttpStatus.CONFLICT.value())
+                .message(exception.getMessage())
+                .build()
+            );
     }
 }

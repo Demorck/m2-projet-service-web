@@ -1,16 +1,12 @@
 package fr.isaaconnect.sweb.controllers;
 
 import fr.isaaconnect.sweb.dto.evaluations.EvaluationDTO;
-import fr.isaaconnect.sweb.dto.restaurants.RestaurantDTO;
-import fr.isaaconnect.sweb.entities.EvaluationEntity;
-import fr.isaaconnect.sweb.entities.RestaurantEntity;
 import fr.isaaconnect.sweb.services.EvaluationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
