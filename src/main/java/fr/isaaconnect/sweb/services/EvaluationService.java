@@ -35,6 +35,7 @@ public class EvaluationService {
         return this.evaluationRepository.save(evaluation);
     }
 
+    @Transactional
     public void removeEvaluation(UUID restaurantId, UUID evaluationId) {
         RestaurantEntity restaurant = this.restaurantRepository.findById(restaurantId).orElseThrow(() ->
                 new NotFoundException("Restaurant with id " + restaurantId + " not found")
