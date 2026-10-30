@@ -10,6 +10,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
@@ -22,7 +23,9 @@ import java.time.Duration;
 @Repository
 public class S3Repository {
 
-    private static final String BUCKET = "cours-m2";
+    private static final String EVALUATION_BUCKET = "evaluation";
+    private static final String RESTAURANT_BUCKET = "restaurant";
+
     private final S3Client s3Client;
     private final S3Presigner s3Presigner;
 
@@ -56,16 +59,15 @@ public class S3Repository {
             .build();
     }
 
-    public void uploadFile(String key, byte[] content, String contentType) {
-        this.s3Client.putObject(
-            b -> b.bucket(BUCKET).key(key).contentType(contentType),
-            RequestBody.fromBytes(content)
-        );
-    }
+    // PRE-SIGN LINKS
 
-    public String getUploadFileUrl(String filePath) {
+    /// Generates a presigned link so the client can upload directly on the S3
+    /// @param bucketName The name of the bucket ({@link RESTAURANT_BUCKET} or {@link EVALUATION_BUCKET})
+    /// @param filePath the path on the bucket
+    /// @return the url
+    public String getUploadFileUrl(String bucketName, String filePath) {
         PutObjectRequest request = PutObjectRequest.builder()
-            .bucket(BUCKET)
+            .bucket(bucketName)
             .key(filePath)
             .build();
 
@@ -77,9 +79,13 @@ public class S3Repository {
         return this.s3Presigner.presignPutObject(presignRequest).url().toExternalForm();
     }
 
-    public String getFileUrl(String filePath) {
+    /// Generates a presigned link so the client can download directly from the S3
+    /// @param bucketName The name of the bucket ({@link RESTAURANT_BUCKET} or {@link EVALUATION_BUCKET})
+    /// @param filePath the path on the bucket
+    /// @return the url
+    public String getFileUrl(String bucketName, String filePath) {
         GetObjectRequest request = GetObjectRequest.builder()
-            .bucket(BUCKET)
+            .bucket(bucketName)
             .key(filePath)
             .build();
 
@@ -89,6 +95,25 @@ public class S3Repository {
             .build();
 
         return this.s3Presigner.presignGetObject(presignRequest).url().toExternalForm();
+    }
+
+    /// Test if the file exists on the specified bucket
+    /// @param bucketName The name of the bucket ({@link RESTAURANT_BUCKET} or {@link EVALUATION_BUCKET})
+    /// @param filePath the path on the bucket
+    /// @return True if the file exists
+    public boolean fileExists(String bucketName, String filePath) {
+        try {
+            HeadObjectRequest request = HeadObjectRequest.builder()
+                .bucket(bucketName)
+                .key(filePath)
+                .build();
+
+            this.s3Client.headObject(request);
+
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     public void bucket() {
