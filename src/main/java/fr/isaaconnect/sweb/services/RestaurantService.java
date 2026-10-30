@@ -49,12 +49,19 @@ public class RestaurantService {
         this.repository.save(entity);
     }
 
+    @Transactional
     public String getUploadImage(UUID restaurantId) {
-        UUID imageId = this.repository.findById(restaurantId).orElseThrow(
+        RestaurantEntity entity = this.repository.findById(restaurantId).orElseThrow(
             () -> new NotFoundException("Restaurant with id " + restaurantId + " not found")
-        ).getImageId();
+        );
 
-        if (imageId == null) imageId = UUID.randomUUID();
+        UUID imageId = entity.getImageId();
+
+        if (imageId == null) {
+            imageId = UUID.randomUUID();
+            entity.setImageId(imageId);
+            this.repository.save(entity);
+        }
 
         return this.s3.getUploadUrl(restaurantId, imageId);
     }
