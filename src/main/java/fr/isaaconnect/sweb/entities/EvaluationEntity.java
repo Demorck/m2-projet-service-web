@@ -19,6 +19,8 @@ public class EvaluationEntity
     @GeneratedValue
     private UUID id;
 
+    private UUID authorId;
+
     @Length(max = 50)
     private String author;
 

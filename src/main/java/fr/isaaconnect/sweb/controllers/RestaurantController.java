@@ -1,5 +1,6 @@
 package fr.isaaconnect.sweb.controllers;
 
+import fr.isaaconnect.sweb.dto.errors.ErrorResponseDTO;
 import fr.isaaconnect.sweb.dto.errors.FieldErrorDTO;
 import fr.isaaconnect.sweb.dto.errors.FieldValidationErrorDTO;
 import fr.isaaconnect.sweb.dto.evaluations.AddEvaluationRequestDTO;
@@ -17,6 +18,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -88,17 +91,24 @@ public class RestaurantController {
     public ResponseEntity<?> addEvaluationByRestaurantId(
         @PathVariable UUID id,
         @Valid @RequestBody AddEvaluationRequestDTO evaluation,
-        BindingResult result
+        BindingResult result,
+        Authentication auth
     ) {
         if (result.hasErrors()) return this.buildResponseErrorEntityFromBindingResult(result);
 
+        Jwt current_auth = (Jwt) auth.getPrincipal();
+        if (current_auth == null)
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                ErrorResponseDTO.builder().code(HttpStatus.FORBIDDEN.value()).message("JWT Token is probably corrupted")
+            );
 
         return ResponseEntity.ok(AddEvaluationResponseDTO.fromEntity(
             this.evaluationService.addEvaluation(
                 id,
-                evaluation.getAuthor(),
+                current_auth.getClaim("name"),
                 evaluation.getText(),
-                evaluation.getNote()
+                evaluation.getNote(),
+                UUID.fromString(auth.getName())
             )
         ));
     }

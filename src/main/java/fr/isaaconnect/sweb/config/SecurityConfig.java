@@ -14,6 +14,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/**").permitAll()
                 .anyRequest().hasRole("ADMIN"))
             .oauth2ResourceServer(oauth2 ->
                 oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(new JWTRoleConverter()))
