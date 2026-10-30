@@ -84,6 +84,6 @@ public class RestaurantService {
             .mapToInt(EvaluationEntity::getNote)
             .summaryStatistics();
 
-        return stats.getCount() == 0 ? stats.getAverage() : -1;
+        return stats.getCount() == 0 ? -1 : stats.getAverage();
     }
 }
