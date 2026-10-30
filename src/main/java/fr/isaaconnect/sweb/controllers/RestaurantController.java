@@ -1,7 +1,7 @@
 package fr.isaaconnect.sweb.controllers;
 
-import fr.isaaconnect.sweb.dto.errors.FieldValidationErrorDTO;
 import fr.isaaconnect.sweb.dto.errors.FieldErrorDTO;
+import fr.isaaconnect.sweb.dto.errors.FieldValidationErrorDTO;
 import fr.isaaconnect.sweb.dto.evaluations.AddEvaluationRequestDTO;
 import fr.isaaconnect.sweb.dto.evaluations.AddEvaluationResponseDTO;
 import fr.isaaconnect.sweb.dto.evaluations.EvaluationDTO;
@@ -16,6 +16,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,9 +34,9 @@ public class RestaurantController {
     @GetMapping
     public List<RestaurantDTO> getRestaurants() {
         return this.restaurantService.getRestaurants()
-                .stream()
-                .map(entry -> RestaurantDTO.fromEntity(entry, this.restaurantService.noteMean(entry)))
-                .toList();
+            .stream()
+            .map(entry -> RestaurantDTO.fromEntity(entry, this.restaurantService.noteMean(entry)))
+            .toList();
     }
 
     @GetMapping("/{id}")
@@ -47,24 +48,24 @@ public class RestaurantController {
 
     @PostMapping
     public ResponseEntity<?> addRestaurant(
-            @Valid @RequestBody AddRestaurantRequestDTO restaurant,
-            BindingResult result
+        @Valid @RequestBody AddRestaurantRequestDTO restaurant,
+        BindingResult result
     ) {
         if (result.hasErrors()) return buildResponseErrorEntityFromBindingResult(result);
 
         return ResponseEntity.ok(AddRestaurantResponseDTO.fromEntity(
             this.restaurantService.addRestaurant(
-                    restaurant.getName(),
-                    restaurant.getAddress()
+                restaurant.getName(),
+                restaurant.getAddress()
             )
         ));
     }
 
     @PatchMapping("/{id}")
     public ResponseEntity<?> modifyRestaurant(
-            @PathVariable UUID id,
-            @Valid @RequestBody ModifyRestaurantDTO restaurant,
-            BindingResult result
+        @PathVariable UUID id,
+        @Valid @RequestBody ModifyRestaurantDTO restaurant,
+        BindingResult result
     ) {
         if (result.hasErrors()) return buildResponseErrorEntityFromBindingResult(result);
 
@@ -82,11 +83,12 @@ public class RestaurantController {
         return ResponseEntity.ok(dto.getEvaluations());
     }
 
+    @PreAuthorize("hasRole('USER')")
     @PostMapping("/{id}/evaluations")
     public ResponseEntity<?> addEvaluationByRestaurantId(
-            @PathVariable UUID id,
-            @Valid @RequestBody AddEvaluationRequestDTO evaluation,
-            BindingResult result
+        @PathVariable UUID id,
+        @Valid @RequestBody AddEvaluationRequestDTO evaluation,
+        BindingResult result
     ) {
         if (result.hasErrors()) return this.buildResponseErrorEntityFromBindingResult(result);
 
@@ -103,8 +105,8 @@ public class RestaurantController {
 
     @DeleteMapping("/{restaurant_id}/evaluations/{evaluation_id}")
     public ResponseEntity<?> removeEvaluationByRestaurantId(
-            @PathVariable UUID restaurant_id,
-            @PathVariable UUID evaluation_id
+        @PathVariable UUID restaurant_id,
+        @PathVariable UUID evaluation_id
     ) {
         this.evaluationService.removeEvaluation(restaurant_id, evaluation_id);
         return ResponseEntity.ok().build();
@@ -112,15 +114,15 @@ public class RestaurantController {
 
     private ResponseEntity<FieldValidationErrorDTO> buildResponseErrorEntityFromBindingResult(BindingResult result) {
         List<FieldErrorDTO> errors = result.getFieldErrors()
-                .stream()
-                .map(FieldErrorDTO::fromFieldError)
-                .toList();
+            .stream()
+            .map(FieldErrorDTO::fromFieldError)
+            .toList();
 
         return ResponseEntity.badRequest().body(FieldValidationErrorDTO.builder()
-                .code(HttpStatus.BAD_REQUEST.value())
-                .message("Fields provide are wrong")
-                .fieldErrors(errors)
-                .build()
+            .code(HttpStatus.BAD_REQUEST.value())
+            .message("Fields provide are wrong")
+            .fieldErrors(errors)
+            .build()
         );
     }
 }
