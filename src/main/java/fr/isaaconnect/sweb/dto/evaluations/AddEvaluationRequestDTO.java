@@ -1,6 +1,8 @@
 package fr.isaaconnect.sweb.dto.evaluations;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import org.hibernate.validator.constraints.Range;
@@ -12,5 +14,6 @@ public class AddEvaluationRequestDTO {
     private String text;
 
     @Range(min = 0, max = 3, message = "{evaluation.note.size}")
-    private int note;
+    @NotNull(message = "{general.fields.not_null}")
+    private Integer note;
 }

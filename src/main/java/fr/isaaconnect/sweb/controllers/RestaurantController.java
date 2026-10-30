@@ -20,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -97,10 +98,11 @@ public class RestaurantController {
     // EVALUATIONS
     @GetMapping("/{id}/evaluations")
     public ResponseEntity<List<EvaluationDTO>> getEvaluationsByRestaurantId(@PathVariable UUID id) {
-        RestaurantEntity entity = this.restaurantService.getRestaurantById(id);
-        RestaurantDTO dto = RestaurantDTO.fromEntity(entity, this.restaurantService.noteMean(entity));
-
-        return ResponseEntity.ok(dto.getEvaluations());
+        return ResponseEntity.ok(
+            this.restaurantService.getRestaurantById(id).getEvaluations().stream()
+                .map(EvaluationDTO::fromEntity)
+                .toList()
+        );
     }
 
     @PreAuthorize("hasRole('USER')")
@@ -109,23 +111,25 @@ public class RestaurantController {
         @PathVariable UUID id,
         @Valid @RequestBody AddEvaluationRequestDTO evaluation,
         BindingResult result,
-        Authentication auth
+        @AuthenticationPrincipal Jwt auth
     ) {
         if (result.hasErrors()) return this.buildResponseErrorEntityFromBindingResult(result);
 
-        Jwt current_auth = (Jwt) auth.getPrincipal();
-        if (current_auth == null)
+        if (auth == null)
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
-                ErrorResponseDTO.builder().code(HttpStatus.FORBIDDEN.value()).message("JWT Token is probably corrupted")
+                ErrorResponseDTO.builder()
+                    .code(HttpStatus.FORBIDDEN.value())
+                    .message("JWT Token is probably corrupted")
+                    .build()
             );
 
         return ResponseEntity.ok(AddEvaluationResponseDTO.fromEntity(
             this.evaluationService.addEvaluation(
                 id,
-                current_auth.getClaim("name"),
+                auth.getClaim("name"),
                 evaluation.getText(),
                 evaluation.getNote(),
-                UUID.fromString(auth.getName())
+                UUID.fromString(auth.getSubject())
             )
         ));
     }

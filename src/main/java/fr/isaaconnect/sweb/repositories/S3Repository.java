@@ -22,10 +22,6 @@ import java.time.Duration;
 
 @Repository
 public class S3Repository {
-
-    private static final String EVALUATION_BUCKET = "evaluation";
-    private static final String RESTAURANT_BUCKET = "restaurant";
-
     private final S3Client s3Client;
     private final S3Presigner s3Presigner;
 
