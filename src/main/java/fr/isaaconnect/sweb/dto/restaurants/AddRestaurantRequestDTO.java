@@ -14,11 +14,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AddRestaurantRequestDTO
 {
-    @NotBlank
+    @NotBlank(message = "{general.fields.not_blank}")
     @Size(max = 90, message = "{restaurant.name.size}")
     private String name;
 
-    @NotBlank
+    @NotBlank(message = "{general.fields.not_blank}")
     @Size(max = 255, message = "{restaurant.address.size}")
     private String address;
 }
