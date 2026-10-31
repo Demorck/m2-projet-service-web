@@ -5,10 +5,12 @@ import fr.isaaconnect.sweb.entities.RestaurantEntity;
 import fr.isaaconnect.sweb.exceptions.NotFoundException;
 import fr.isaaconnect.sweb.repositories.EvaluationRepository;
 import fr.isaaconnect.sweb.repositories.RestaurantRepository;
+import fr.isaaconnect.sweb.services.s3.EvaluationS3Service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,6 +19,7 @@ import java.util.UUID;
 public class EvaluationService {
     private final EvaluationRepository evaluationRepository;
     private final RestaurantRepository restaurantRepository;
+    private final EvaluationS3Service s3;
 
 
     @Transactional
@@ -37,6 +40,7 @@ public class EvaluationService {
             .note(note)
             .restaurant(restaurant)
             .authorId(authorId)
+            .imageId(new ArrayList<>())
             .build();
 
         restaurant.getEvaluations().add(evaluation);
@@ -56,5 +60,43 @@ public class EvaluationService {
             .orElseThrow(() -> new NotFoundException("Evaluation with id " + evaluationId + " not found"));
 
         this.evaluationRepository.delete(entity);
+    }
+
+    @Transactional
+    public String getUploadImage(UUID evaluationId) {
+        EvaluationEntity entity = this.evaluationRepository.findById(evaluationId).orElseThrow(
+            () -> new NotFoundException("Evaluation with id " + evaluationId + " not found")
+        );
+
+        UUID restaurantId = entity.getRestaurant().getId();
+        UUID imageId = UUID.randomUUID();
+
+        entity.getImageId().add(imageId);
+
+        this.evaluationRepository.save(entity);
+        return this.s3.getUploadUrl(restaurantId, evaluationId, imageId);
+    }
+
+    @Transactional
+    public List<String> getImages(UUID evaluationId) {
+        EvaluationEntity entity = this.evaluationRepository.findById(evaluationId).orElseThrow(
+            () -> new NotFoundException("Evaluation with id " + evaluationId + " not found")
+        );
+
+        UUID restaurantId = entity.getRestaurant().getId();
+        List<UUID> imagesId = entity.getImageId();
+
+        List<UUID> validImageId = imagesId.stream()
+            .filter(id -> this.s3.exists(restaurantId, evaluationId, id))
+            .toList();
+
+        if (validImageId.size() < imagesId.size()) {
+            entity.setImageId(new ArrayList<>(validImageId));
+            this.evaluationRepository.save(entity);
+        }
+
+        return validImageId.stream()
+            .map(uuid -> this.s3.getDownloadUrl(restaurantId, evaluationId, uuid))
+            .toList();
     }
 }

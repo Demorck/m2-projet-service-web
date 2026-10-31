@@ -5,6 +5,7 @@ import lombok.*;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.Range;
 
+import java.util.ArrayList;
 import java.util.UUID;
 
 @Entity
@@ -29,6 +30,8 @@ public class EvaluationEntity {
 
     @Range(min = 0, max = 3)
     private int note;
+
+    private ArrayList<UUID> imageId;
 
     @ManyToOne
     private RestaurantEntity restaurant;
