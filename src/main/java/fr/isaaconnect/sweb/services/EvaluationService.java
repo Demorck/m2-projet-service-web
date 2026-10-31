@@ -50,16 +50,10 @@ public class EvaluationService {
     }
 
     @Transactional
-    public void removeEvaluation(UUID restaurantId, UUID evaluationId) {
-        RestaurantEntity restaurant = this.restaurantRepository.findById(restaurantId).orElseThrow(() ->
-            new NotFoundException("Restaurant with id " + restaurantId + " not found")
+    public void removeEvaluation(UUID evaluationId) {
+        EvaluationEntity entity = this.evaluationRepository.findById(evaluationId).orElseThrow(() ->
+            new NotFoundException("Evaluation with id " + evaluationId + " not found")
         );
-
-        EvaluationEntity entity = restaurant.getEvaluations().stream()
-            .filter(evaluation -> evaluation.getId().equals(evaluationId))
-            .findFirst()
-            .orElseThrow(() -> new NotFoundException("Evaluation with id " + evaluationId + " not found"));
-
         this.evaluationRepository.delete(entity);
     }
 

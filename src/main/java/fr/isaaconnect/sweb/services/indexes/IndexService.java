@@ -21,6 +21,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -90,5 +91,22 @@ public class IndexService {
         {}
 
         return null;
+    }
+
+    public void deleteEvaluation(UUID evaluationId) {
+        try {
+            this.writer.deleteDocuments(new org.apache.lucene.index.Term("evaluation_id", evaluationId.toString()));
+            this.writer.commit();
+
+            DirectoryReader newDirReader = DirectoryReader.openIfChanged(this.reader);
+            if (newDirReader != null) {
+                this.reader.close();
+                this.reader = newDirReader;
+                this.searcer = new IndexSearcher(this.reader);
+            }
+
+        } catch (IOException e) {
+            throw new RuntimeException("Erreur lors de la suppression de l'index Lucene", e);
+        }
     }
 }

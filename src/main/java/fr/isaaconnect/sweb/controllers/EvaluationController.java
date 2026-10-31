@@ -46,6 +46,17 @@ public class EvaluationController {
         );
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{evaluation_id}")
+    public ResponseEntity<?> removeEvaluation(
+        @PathVariable UUID evaluation_id
+    ) {
+        this.evaluationService.removeEvaluation(evaluation_id);
+        this.indexService.deleteEvaluation(evaluation_id);
+
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/{id}/image")
     public ResponseEntity<List<ImageURLResponseDTO>> getEvaluationImageUrl(@PathVariable UUID id) {
         return ResponseEntity.ok(this.evaluationService.getImages(id).stream()

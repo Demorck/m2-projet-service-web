@@ -118,13 +118,4 @@ public class RestaurantController {
 
         return ResponseEntity.ok(AddEvaluationResponseDTO.fromEntity(entity));
     }
-
-    @DeleteMapping("/{restaurant_id}/evaluations/{evaluation_id}")
-    public ResponseEntity<?> removeEvaluationByRestaurantId(
-        @PathVariable UUID restaurant_id,
-        @PathVariable UUID evaluation_id
-    ) {
-        this.evaluationService.removeEvaluation(restaurant_id, evaluation_id);
-        return ResponseEntity.ok().build();
-    }
 }
