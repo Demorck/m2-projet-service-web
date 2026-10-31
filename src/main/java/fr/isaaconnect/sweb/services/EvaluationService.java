@@ -29,9 +29,9 @@ public class EvaluationService {
 
 
     @Transactional
-    public EvaluationEntity addEvaluation(UUID id, String author, String text, int note, UUID authorId) {
-        RestaurantEntity restaurant = this.restaurantRepository.findById(id).orElseThrow(() ->
-            new NotFoundException("Restaurant with id " + id + " not found")
+    public EvaluationEntity addEvaluation(UUID restaurantId, String author, String text, int note, UUID authorId) {
+        RestaurantEntity restaurant = this.restaurantRepository.findById(restaurantId).orElseThrow(() ->
+            new NotFoundException("Restaurant with id " + restaurantId + " not found")
         );
 
         EvaluationEntity evaluation = EvaluationEntity.builder()

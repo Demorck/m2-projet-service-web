@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.validator.constraints.Length;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
 
@@ -26,8 +27,9 @@ public class RestaurantEntity {
     @Length(max = 255)
     private String address;
 
+    @Builder.Default
     @OneToMany(mappedBy = "restaurant")
-    private Collection<EvaluationEntity> evaluations;
+    private Collection<EvaluationEntity> evaluations = new ArrayList<>();
 
     private UUID imageId;
 }
