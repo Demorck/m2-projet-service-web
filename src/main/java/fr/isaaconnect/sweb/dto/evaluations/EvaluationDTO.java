@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.apache.lucene.document.Document;
 
 import java.util.UUID;
 
@@ -24,6 +25,15 @@ public class EvaluationDTO {
             .author(entity.getAuthor())
             .text(entity.getText())
             .note(entity.getNote())
+            .build();
+    }
+
+    public static EvaluationDTO fromLuceneDocument(Document document) {
+        return EvaluationDTO.builder()
+            .id(UUID.fromString(document.getField("evaluation_id").stringValue()))
+            .author(document.getField("author").stringValue())
+            .text(document.getField("content").stringValue())
+            .note(document.getField("note").numericValue().intValue())
             .build();
     }
 }

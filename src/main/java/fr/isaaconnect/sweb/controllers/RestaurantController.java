@@ -3,14 +3,17 @@ package fr.isaaconnect.sweb.controllers;
 import fr.isaaconnect.sweb.dto.evaluations.AddEvaluationRequestDTO;
 import fr.isaaconnect.sweb.dto.evaluations.AddEvaluationResponseDTO;
 import fr.isaaconnect.sweb.dto.evaluations.EvaluationDTO;
+import fr.isaaconnect.sweb.dto.evaluations.EvaluationIndexDTO;
 import fr.isaaconnect.sweb.dto.restaurants.AddRestaurantRequestDTO;
 import fr.isaaconnect.sweb.dto.restaurants.AddRestaurantResponseDTO;
 import fr.isaaconnect.sweb.dto.restaurants.ModifyRestaurantDTO;
 import fr.isaaconnect.sweb.dto.restaurants.RestaurantDTO;
 import fr.isaaconnect.sweb.dto.uploads.ImageURLResponseDTO;
+import fr.isaaconnect.sweb.entities.EvaluationEntity;
 import fr.isaaconnect.sweb.entities.RestaurantEntity;
 import fr.isaaconnect.sweb.services.EvaluationService;
 import fr.isaaconnect.sweb.services.RestaurantService;
+import fr.isaaconnect.sweb.services.indexes.IndexService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +32,7 @@ import java.util.UUID;
 public class RestaurantController {
     private final RestaurantService restaurantService;
     private final EvaluationService evaluationService;
+    private final IndexService indexService;
 
     // RESTAURANTS
     @GetMapping
@@ -101,15 +105,18 @@ public class RestaurantController {
         @Valid @RequestBody AddEvaluationRequestDTO evaluation,
         @AuthenticationPrincipal Jwt auth
     ) {
-        return ResponseEntity.ok(AddEvaluationResponseDTO.fromEntity(
-            this.evaluationService.addEvaluation(
-                id,
-                auth.getClaim("name"),
-                evaluation.getText(),
-                evaluation.getNote(),
-                UUID.fromString(auth.getSubject())
-            )
-        ));
+        EvaluationEntity entity = this.evaluationService.addEvaluation(
+            id,
+            auth.getClaim("name"),
+            evaluation.getText(),
+            evaluation.getNote(),
+            UUID.fromString(auth.getSubject())
+        );
+
+        EvaluationIndexDTO indexDTO = EvaluationIndexDTO.fromEntity(entity);
+        indexService.indexEvaluation(indexDTO);
+
+        return ResponseEntity.ok(AddEvaluationResponseDTO.fromEntity(entity));
     }
 
     @DeleteMapping("/{restaurant_id}/evaluations/{evaluation_id}")
