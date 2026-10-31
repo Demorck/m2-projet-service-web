@@ -9,6 +9,8 @@ import org.apache.lucene.document.Document;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -45,7 +47,7 @@ public class EvaluationController {
     }
 
     @GetMapping("/{id}/image")
-    public ResponseEntity<List<ImageURLResponseDTO>> getRestaurantImageUrl(@PathVariable UUID id) {
+    public ResponseEntity<List<ImageURLResponseDTO>> getEvaluationImageUrl(@PathVariable UUID id) {
         return ResponseEntity.ok(this.evaluationService.getImages(id).stream()
             .map(s -> ImageURLResponseDTO.builder().url(s).build())
             .toList()
@@ -53,9 +55,12 @@ public class EvaluationController {
     }
 
     @PostMapping("/{id}/image")
-    public ResponseEntity<ImageURLResponseDTO> getRestaurantUploadImageUrl(@PathVariable UUID id) {
+    public ResponseEntity<ImageURLResponseDTO> getEvaluationUploadImageUrl(
+        @PathVariable UUID id,
+        @AuthenticationPrincipal Jwt auth
+    ) {
         return ResponseEntity.ok(ImageURLResponseDTO.builder()
-            .url(this.evaluationService.getUploadImage(id))
+            .url(this.evaluationService.getUploadImage(id, UUID.fromString(auth.getSubject())))
             .build()
         );
     }

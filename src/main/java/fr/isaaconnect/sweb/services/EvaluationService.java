@@ -2,6 +2,7 @@ package fr.isaaconnect.sweb.services;
 
 import fr.isaaconnect.sweb.entities.EvaluationEntity;
 import fr.isaaconnect.sweb.entities.RestaurantEntity;
+import fr.isaaconnect.sweb.exceptions.ForbiddenException;
 import fr.isaaconnect.sweb.exceptions.NotFoundException;
 import fr.isaaconnect.sweb.repositories.EvaluationRepository;
 import fr.isaaconnect.sweb.repositories.RestaurantRepository;
@@ -63,10 +64,13 @@ public class EvaluationService {
     }
 
     @Transactional
-    public String getUploadImage(UUID evaluationId) {
+    public String getUploadImage(UUID evaluationId, UUID auth_id) {
         EvaluationEntity entity = this.evaluationRepository.findById(evaluationId).orElseThrow(
             () -> new NotFoundException("Evaluation with id " + evaluationId + " not found")
         );
+
+        if (!entity.getAuthorId().equals(auth_id))
+            throw new ForbiddenException("This evaluation is not yours");
 
         UUID restaurantId = entity.getRestaurant().getId();
         UUID imageId = UUID.randomUUID();

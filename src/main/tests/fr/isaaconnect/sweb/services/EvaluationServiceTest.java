@@ -2,6 +2,7 @@ package fr.isaaconnect.sweb.services;
 
 import fr.isaaconnect.sweb.entities.EvaluationEntity;
 import fr.isaaconnect.sweb.entities.RestaurantEntity;
+import fr.isaaconnect.sweb.exceptions.ForbiddenException;
 import fr.isaaconnect.sweb.exceptions.NotFoundException;
 import fr.isaaconnect.sweb.repositories.EvaluationRepository;
 import fr.isaaconnect.sweb.repositories.RestaurantRepository;
@@ -135,9 +136,17 @@ public class EvaluationServiceTest {
         when(this.s3.getUploadUrl(eq(this.restaurantID), eq(this.evaluationID), any(UUID.class)))
             .thenReturn(S3_MOCK_URL);
 
-        String url = this.service.getUploadImage(this.evaluationID);
+        String url = this.service.getUploadImage(this.evaluationID, this.authorId);
 
         assertEquals(S3_MOCK_URL, url);
+    }
+
+    @Test
+    void get_upload_image_but_not_author_one_should_throw() {
+        when(this.evaluationRepository.findById(this.evaluationID))
+            .thenReturn(Optional.of(this.evaluationEntity));
+
+        assertThrows(ForbiddenException.class, () -> this.service.getUploadImage(this.evaluationID, UUID.randomUUID()));
     }
 
     // Test on getImages(UUID)
