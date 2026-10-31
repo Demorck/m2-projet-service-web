@@ -1,110 +1,58 @@
-# Examen Backend de la formation Web services
+# Explications
 
-**Lisez bien l'énoncé avant de vous lancer.**
+## Routes
 
-## Introduction
+Certaines routes sont peut être pas autorisées pour le rôle `USER` alors qu'elles pourraient l'être, notamment sur les 
+GET. Le sujet indique juste que les `USER` peuvent créer et éditer leur propres évaluations. Du coup, les utilisateurs
+n'ont accès qu'à ça. Pour modifier ça, y a seulement à rajouter `@PreAuthorize("hasRole('USER')")` sur les routes 
+qu'on souhaite.
 
-Le guide Michelin a décidé de mettre à jour son application web permettant de gérer les
-restaurants visités et leur classement.
+Certaines routes (notamment création/suppression) renvoie un 200 alors que je pourrais renvoyer un 201 CREATED ou
+204 (NO CONTENT). Je trouve qu'un 200 c'est plus simple, car si c'est "OK", ça veut dire que ça a bien été fait
 
-Grâce à vos compétences, vous avez été choisis pour effectuer cette tâche.
-Dans un premier temps, vous devez créer leur API à l'aide de la technologie Springboot (Java 17 ou plus).
+## Écarts du sujet
 
-## Définitions
+J'ai pris certaines "libertés" / "écarts", notamment :
+- UUID au lieu d'un nombre entier positif
+- `mean` au lieu de `moyenne` (tout est en anglais)
+- Suppression réservée à l'admin. Je sais pas si ça compte comme modification
 
-Un **restaurant** est caractérisé par :
+## S3
 
-- un identifiant unique (un nombre entier positif)
-- Un nom (longueur max de 90 caractères)
-- Une adresse (longueur max de 255 caractères)
-- Une liste d'**évaluations**
-- une image présentant le restaurant
+J'ai créé des services S3 pour chaque service car je trouve ça plus propre. Le s3 est générique et chaque sous-service
+appelle ce qu'il a besoin et construit ce qu'il a besoin.
+Mes images sont dans
+Pour les évaluations: `<BUCKET_NAME>/maximilien-7f0ed9/<RESTAURANT_ID>/<EVALUATION_ID>/<IMAGE_ID>`
+Pour le restaurant: `<BUCKET_NAME>/maximilien-7f0ed9/<RESTAURANT_ID>/<IMAGE_ID>-cover`
 
-Une **évaluation** est caractérisée par :
+J'aime bien quand c'est bien rangé. On retrouve les images par évaluation et dans le dossier du restaurant, seulement
+les images du restaurant. On pourrait en rajouter par exemple pour les menus, etc. 
 
-- un identifiant unique (un nombre entier positif)
-- Le nom de l'évaluateur (longueur max de 50 caractères)
-- Le commentaire (longueur max de 255 caractères)
-- Le nombre d'étoiles recommandé (0,1,2 ou 3) appellée "note"
-- Une ou plusieurs photo des plats
+## Erreurs
 
-## Cahier des charges
+J'ai surchargé `handleExceptionInternal` et `handleMethodArgumentNotValid` pour renvoyer les mêmes erreurs tout le temps.
+Certains cas ne sont pas pris pour renvoyer les mêmes erreurs notamment les 500 et les 401/403. Je ne me suis pas plus
+renseigné sur ça.
 
-L'API doit exposer les fonctionnalités suivantes :
+## Tests
 
-#### Restaurants
+J'ai pas testé l'IndexService car je ne sais pas comment le tester puisque ça prend les fichiers sur l'ordinateur. 
+En fait, je trouve ça plutôt compliqué à tester et c'est moyennement unitaire du coup.
+J'avoue avoir eu du mal à comprendre la façon dont on construit les tests efficacement mais j'ai compris.
 
-- La possibilité de récupérer tous les restaurants\*
-- La possibilité de récupérer un restaurant en particulier\*
-- La possibilité de créer un restaurant\*
-- La possibilité de mettre à jour le nom et l'adresse d'un restaurant
+## Indexation
 
-#### Evaluations
+Je pense qu'il est mieux d'indexer seulement le contenu et de faire un appel à la base de donnée à chaque fois que de 
+mettre tout via Lucene car les données sont à deux endroits à la fois. J'ai laissé comme ça.
 
-- La possibilité d'ajouter une évaluation sur un restaurant
-- La possibilité de supprimer une évaluation
-- La possibilité de récupérer les évaluations en fonction d'un (ou plusieurs) mots clefsd
-- La possibilité pour un utilisateur de récupérer toutes les évaluations qu'il a lui même créé.
+## Autres
 
-Les routes retournant un (ou plusieurs) restaurant (marquées par \*) doivent aussi retourner la moyenne des notes du-dit restaurant dans une propriété nommée "moyenne". Si le restaurant ne dispose d'aucune evaluation, la moyenne est de -1.
+- J'ai commenté que deux portions (le RoleConverter et le S3Repository) car le reste est assez explicite.
+- J'ai utilisé Java 27
+- Le .env a `S3_ACCESS_KEY` et `S3_SECRET_KEY` pour le S3
+- Aucun code n'a été généré par IA générative. L'utilisation a été seulement pour des exemples hors du projet après avoir
+ bloqué pas mal de temps sur la doc pour que je comprenne. Je préfère être transparent quant à mon utilisation de l'IA générative.
+- Vous aviez parlé de problème N+1 en cours mais j'avoue qu'à part faire une jointure à la manuelle sur les tables, je
+ne sais pas si y a un autre moyen (quand on récupère les évaluations de tous les restaurants)
 
-Les cas d'erreur doivent être gérés pour retourner une erreur (404, 500, etc) contenant :
-
-- Un code
-- Un message expliquant l'erreur
-
-### Authentification
-
-L'authentifcation se base sur une solution externe compatible OpenID Connect.
-
-- Il existe deux types de users : 
-  - les evaluateurs qui peuvent créer et éditer leurs prorpes évaluations. Ils ont le role : USER
-  - les admins qui ont tous les droits dont créer les restaurant et éditer n'importe quelle évaluation. Ils ont le role : ADMIN
-
-#### utilisateurs pré-définis : 
-- Lucien Bramard
-  - username : ``````
-  - password: ``````
-  - role : ``````
-
-- Noël Flantier
-  - username : ``````
-  - password : ``````
-  - role : ``````
-
-Le rôle se trouve dans le JWT qui permet d'identifié un utilisateur.
-
-##### Stockage des images
-
-Vous avez deux buckets à votre dispositon : 
-  - evaluation
-  - restaurant
-
-Credentials :
-  - url: "https://s3.bober.ovh"
-  - accessKeyId: ""
-  - secretAccessKey: ""
-
-#### Tests
-
-- Les services doivent être testés a l'aide de tests unitaires
-
-#### Swagger
-
-L'api doit exposer un swagger décrivant ses différentes routes
-
-## Conseils supplémentaires
-
-- Planifiez bien les tâches que vous devrez faire afin d'organiser au mieux vos dossiers et votre code dès le début.
-- Mieux vaut faire peu correctement que beaucoup salement.
-- Vous ne faites pas du code seulement pour vous-même mais aussi pour qu'il puisse être compris par quelqu'un d'autre, notamment moi.
-- Les commentaires expliquant ce que vous faites sont bien sûr les bienvenus.
-- La partie des rôles n'a pas été vue en cours, je sais, vous devrez fouiller la doc pour voir comment mapper les rôles d'un JWT à un droit d'accès dans votre code (Lire la documentation est une partie importante du métier d'ingénieur)
-- Pour les tests, pensez bien à couvrir un maximum de cas (restaurant avec et sans evaluations, etc...)
-- Vous avez accès à votre précédent travail et à internet.
-- En revanche, votre dignité vous interdit de faire appel à vos camarades a une IA.
-- Vous pouvez bien sûr créer un nouveau projet à partir de https://start.spring.io/
-
-## Rendu
-- Sur github (out gitlab ou Codeberg ou autre) : envoyez moi le lien et assurez-vous que j'ai accès au repo en lecture (a envoyer à avec votre nom + prénom)
- 
+Sinon je suis assez content, j'ai appris pas mal de choses (et encore merci pour le cours, il était super !)
