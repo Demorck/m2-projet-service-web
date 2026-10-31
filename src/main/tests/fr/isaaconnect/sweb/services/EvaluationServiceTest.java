@@ -124,6 +124,49 @@ public class EvaluationServiceTest {
             .save(any(EvaluationEntity.class));
     }
 
+    // Test on modifyEvaluation(UUID, String, Integer, String, boolean)
+    @Test
+    void modify_evaluation_with_new_values_and_right_author_should_update() {
+        when(this.evaluationRepository.findById(this.evaluationID))
+            .thenReturn(Optional.of(this.evaluationEntity));
+        when(this.evaluationRepository.save(any(EvaluationEntity.class)))
+            .thenReturn(this.evaluationEntity);
+
+        this.service.modifyEvaluation(this.evaluationID, "New name", null, this.authorId, false);
+
+        assertEquals("New name", this.evaluationEntity.getText());
+        assertEquals(EVALUATION_NOTE, this.evaluationEntity.getNote());
+
+        // Checking if the DB has been called only once
+        verify(this.evaluationRepository, times(1))
+            .save(any(EvaluationEntity.class));
+    }
+
+    @Test
+    void modify_evaluation_with_wrong_author_should_throw() {
+        when(this.evaluationRepository.findById(this.evaluationID))
+            .thenReturn(Optional.of(this.evaluationEntity));
+
+        assertThrows(ForbiddenException.class, () ->
+            this.service.modifyEvaluation(this.evaluationID, null, null, UUID.randomUUID(), false)
+        );
+    }
+
+    @Test
+    void modify_evaluation_with_new_values_and_admin_should_throw() {
+        when(this.evaluationRepository.findById(this.evaluationID))
+            .thenReturn(Optional.of(this.evaluationEntity));
+
+        this.service.modifyEvaluation(this.evaluationID, "New name", null, UUID.randomUUID(), true);
+
+        assertEquals("New name", this.evaluationEntity.getText());
+        assertEquals(EVALUATION_NOTE, this.evaluationEntity.getNote());
+
+        // Checking if the DB has been called only once
+        verify(this.evaluationRepository, times(1))
+            .save(any(EvaluationEntity.class));
+    }
+
 
 
     // Test on getUploadImage(UUID)

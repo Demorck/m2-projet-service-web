@@ -3,10 +3,7 @@ package fr.isaaconnect.sweb.services.indexes;
 import fr.isaaconnect.sweb.dto.evaluations.EvaluationIndexDTO;
 import org.apache.lucene.analysis.fr.FrenchAnalyzer;
 import org.apache.lucene.document.*;
-import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.index.StoredFields;
+import org.apache.lucene.index.*;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
@@ -93,9 +90,34 @@ public class IndexService {
         return null;
     }
 
+    public void modifyEvaluation(EvaluationIndexDTO index) {
+        try {
+            Document document = new Document();
+            document.add(new StringField("restaurant_id",String.valueOf(index.getRestaurantId()),Field.Store.YES));
+            document.add(new StringField("evaluation_id", String.valueOf(index.getId()), Field.Store.YES ));
+            document.add(new StringField("author", index.getAuthor(), Field.Store.YES));
+            document.add(new TextField("content", index.getText(), Field.Store.YES));
+            document.add(new IntField( "note", index.getNote(), Field.Store.YES));
+
+            Term term = new Term("evaluation_id", String.valueOf(index.getId()));
+
+            this.writer.updateDocument(term, document);
+            this.writer.commit();
+
+            DirectoryReader newDirReader = DirectoryReader.openIfChanged(this.reader);
+            if (newDirReader != null) {
+                this.reader.close();
+                this.reader = newDirReader;
+                this.searcer = new IndexSearcher(this.reader);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Error while modifying lucene document", e);
+        }
+    }
+
     public void deleteEvaluation(UUID evaluationId) {
         try {
-            this.writer.deleteDocuments(new org.apache.lucene.index.Term("evaluation_id", evaluationId.toString()));
+            this.writer.deleteDocuments(new Term("evaluation_id", evaluationId.toString()));
             this.writer.commit();
 
             DirectoryReader newDirReader = DirectoryReader.openIfChanged(this.reader);
@@ -106,7 +128,7 @@ public class IndexService {
             }
 
         } catch (IOException e) {
-            throw new RuntimeException("Erreur lors de la suppression de l'index Lucene", e);
+            throw new RuntimeException("Error while deleting lucene document", e);
         }
     }
 }

@@ -1,6 +1,8 @@
 package fr.isaaconnect.sweb.controllers;
 
 import fr.isaaconnect.sweb.dto.evaluations.EvaluationDTO;
+import fr.isaaconnect.sweb.dto.evaluations.EvaluationIndexDTO;
+import fr.isaaconnect.sweb.dto.evaluations.ModifyEvaluationDTO;
 import fr.isaaconnect.sweb.dto.uploads.ImageURLResponseDTO;
 import fr.isaaconnect.sweb.services.EvaluationService;
 import fr.isaaconnect.sweb.services.indexes.IndexService;
@@ -11,6 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -44,6 +47,33 @@ public class EvaluationController {
         return ResponseEntity.ok(
             results.stream().map(EvaluationDTO::fromLuceneDocument).toList()
         );
+    }
+
+    @PatchMapping("/{evaluation_id}")
+    public ResponseEntity<?> modifyEvaluation(
+        @PathVariable UUID evaluation_id,
+        @RequestBody ModifyEvaluationDTO dto,
+        JwtAuthenticationToken token
+    ) {
+        String subject = token.getToken().getSubject();
+        boolean isAdmin = token.getAuthorities().stream()
+            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        this.evaluationService.modifyEvaluation(
+            evaluation_id,
+            dto.getText(),
+            dto.getNote(),
+            UUID.fromString(subject),
+            isAdmin
+        );
+
+
+        this.indexService.modifyEvaluation(
+            EvaluationIndexDTO.fromEntity(this.evaluationService.getEvaluationById(evaluation_id))
+        );
+
+
+        return ResponseEntity.ok().build();
     }
 
     @PreAuthorize("hasRole('ADMIN')")

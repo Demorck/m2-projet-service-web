@@ -7,7 +7,10 @@ import fr.isaaconnect.sweb.exceptions.NotFoundException;
 import fr.isaaconnect.sweb.repositories.EvaluationRepository;
 import fr.isaaconnect.sweb.repositories.RestaurantRepository;
 import fr.isaaconnect.sweb.services.s3.EvaluationS3Service;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.validator.constraints.Range;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +25,12 @@ public class EvaluationService {
     private final RestaurantRepository restaurantRepository;
     private final EvaluationS3Service s3;
 
+    @Transactional
+    public EvaluationEntity getEvaluationById(UUID evaluationId) {
+        return this.evaluationRepository.findById(evaluationId).orElseThrow(() ->
+            new NotFoundException("Evaluation with id " + evaluationId + " not found")
+        );
+    }
 
     @Transactional
     public List<EvaluationEntity> getEvaluationByAuthor(UUID authorId) {
@@ -55,6 +64,21 @@ public class EvaluationService {
             new NotFoundException("Evaluation with id " + evaluationId + " not found")
         );
         this.evaluationRepository.delete(entity);
+    }
+
+    @Transactional
+    public void modifyEvaluation(UUID evaluationId, String text, Integer note, UUID subject, boolean isAdmin) {
+        EvaluationEntity entity = this.evaluationRepository.findById(evaluationId).orElseThrow(() ->
+            new NotFoundException("Evaluation with id " + evaluationId + " not found")
+        );
+        if (!isAdmin && !entity.getAuthorId().equals(subject)) {
+            throw new ForbiddenException("This evaluation is not yours");
+        }
+
+        if (text != null) entity.setText(text);
+        if (note != null) entity.setNote(note);
+
+        this.evaluationRepository.save(entity);
     }
 
     @Transactional
@@ -97,4 +121,5 @@ public class EvaluationService {
             .map(uuid -> this.s3.getDownloadUrl(restaurantId, evaluationId, uuid))
             .toList();
     }
+
 }
