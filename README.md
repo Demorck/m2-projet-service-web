@@ -50,9 +50,24 @@ mettre tout via Lucene car les données sont à deux endroits à la fois. J'ai l
 - J'ai commenté que deux portions (le RoleConverter et le S3Repository) car le reste est assez explicite.
 - J'ai utilisé Java 27
 - Le .env a `S3_ACCESS_KEY` et `S3_SECRET_KEY` pour le S3
-- Aucun code n'a été généré par IA générative. L'utilisation a été seulement pour des exemples hors du projet après avoir
- bloqué pas mal de temps sur la doc pour que je comprenne. Je préfère être transparent quant à mon utilisation de l'IA générative.
 - Vous aviez parlé de problème N+1 en cours mais j'avoue qu'à part faire une jointure à la manuelle sur les tables, je
-ne sais pas si y a un autre moyen (quand on récupère les évaluations de tous les restaurants)
+ne sais pas si y a un autre moyen (quand on récupère les évaluations de tous les restaurants). J'ai aussi pas trop compris la source du problème mais je sais juste c'est quand on fait un calcul sur un findAll de la base.
+
+## AI Disclosure
+Je préfère être transparent quant à mon utilisation de l'IA générative
+Aucun code n'a été généré par IA générative. L'utilisation a été seulement pour des exemples (hors du projet, pour éviter d'avoir le contexte et donc une solution) après avoir bloqué pas mal de temps sur la doc/problèmes pour que je comprenne.
+En fait, comme StackOverflow est quasi mort, c'est plus efficace de faire ça que de chercher pendant super longtemps.
+Je l'ai utilisé aussi pour confronter un choix que j'ai pris, pour voir ce qui existait ou comment on pourrait le faire autrement par exemple:
+- La moyenne est calculée en java (ça me semblait plus simple) mais y a aussi en DB
+- Record pour des DTO
+- Organisation par couche ou fonctionnalités (en fait, par fonctionnalité j'ai vu qu'on peut faire un package-info.java et dire ce qu'on exporte / importe ce qui est assez propre je trouve)
+- Le controleur appelle le service puis lucene / le service appelle tout
+
+En fait, mes projets persos sont souvent pour apprendre / comprendre des choses (Disques wii, la décompilation, etc.) du coup je trouve ça nul pour moi de générer du code.
+Si vous estimez quand même que ma note doit être baissée, je comprendrais. L'AI disclosure est juste là pour être transparent
+
+---
 
 Sinon je suis assez content, j'ai appris pas mal de choses (et encore merci pour le cours, il était super !)
+
+(si vous voulez regarder un stream de moi qui programme le début du projet: https://www.twitch.tv/videos/2913837470 (je suis assez lent, c'est l'effet stream où on doit pas laisser de blanc et le cerveau prend aussi du "process" car y a le stream))
